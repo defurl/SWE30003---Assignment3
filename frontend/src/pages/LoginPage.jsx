@@ -23,7 +23,7 @@ const LoginPage = () => {
                     <img src="https://nhathuoclongchau.com.vn/static/images/logo.svg" alt="Long Chau Logo" className="mx-auto h-12"/>
                     <h2 className="mt-6 text-3xl font-bold text-gray-900">Sign in to your account</h2>
                     <p className="mt-2 text-sm text-gray-600">usernames: customer, pharmacist, cashier, manager, or warehouse</p>
-                    <p className="mt-2 text-sm text-gray-600">password: anything</p>
+                    <p className="mt-2 text-sm text-gray-600">password: password123</p>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>

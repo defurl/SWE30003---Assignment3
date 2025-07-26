@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import OperationMenu from '../../components/dashboard/OperationMenu.jsx';
+import PrescriptionQueue from '../../components/dashboard/PrescriptionQueue.jsx'; // <-- IMPORT
 import apiClient from '../../api/apiClient';
 
 const QuickStatCard = ({ title, value, color = 'text-blue-600' }) => (
@@ -30,7 +31,6 @@ const DashboardPage = () => {
                     </p>
                 </div>
                 
-                {/* Quick Stats Section */}
                 {dashboardData && (
                     <div className="mb-10">
                         <h2 className="text-2xl font-semibold text-gray-800 mb-4">At a Glance</h2>
@@ -42,8 +42,17 @@ const DashboardPage = () => {
                     </div>
                 )}
 
-                {/* Operations Menu Section */}
-                <OperationMenu role={user.role} />
+                {/* --- CONDITIONAL RENDERING FOR PHARMACIST --- */}
+                {user.role === 'pharmacist' && (
+                    <div className="mt-10">
+                         <h2 className="text-2xl font-semibold text-gray-800 mb-4">Prescription Validation Queue</h2>
+                        <PrescriptionQueue />
+                    </div>
+                )}
+
+                <div className="mt-10">
+                    <OperationMenu role={user.role} />
+                </div>
             </div>
         </div>
     );
