@@ -10,53 +10,81 @@ const { get } = require('../routes/orderRoutes');
  */
 const placeInitialOrder = async (req, res) => {
     const customerId = req.user.id;
-    const { items } = req.body;
-
+    // We now expect branchId from the frontend
+    const { items, branchId } = req.body; 
+  
+    console.log('--- PLACING INITIAL ORDER ---');
+    console.log('Customer ID:', customerId, 'Branch ID:', branchId);
+    console.log('Items:', items);
+  
     if (!items || items.length === 0) {
-        return res.status(400).json({ message: 'Order must contain at least one item.' });
+      return res.status(400).json({ message: 'Order must contain at least one item.' });
     }
-
+    if (!branchId) {
+      return res.status(400).json({ message: 'Branch ID is required to place an order.' });
+    }
+  
     const connection = await db.getConnection();
-
+  
     try {
-        await connection.beginTransaction();
-
-        const productIds = items.map(item => item.productId);
-        const [products] = await connection.query('SELECT product_id, price, requires_prescription FROM product WHERE product_id IN (?)', [productIds]);
-
-        const requiresPrescription = products.some(p => p.requires_prescription);
-        const initialStatus = requiresPrescription ? 'pending_prescription' : 'pending_payment';
-
-        let totalAmount = 0;
-        const productMap = new Map(products.map(p => [p.product_id, p]));
-        for (const item of items) {
-            const product = productMap.get(item.productId);
-            if (!product) throw new Error(`Product with ID ${item.productId} not found.`);
-            totalAmount += product.price * item.quantity;
-        }
-
-        const [orderResult] = await connection.query('INSERT INTO `order` (customer_id, status, total_amount) VALUES (?, ?, ?)', [customerId, initialStatus, totalAmount]);
-        const orderId = orderResult.insertId;
-
-        const orderItemsData = items.map(item => {
-            const product = productMap.get(item.productId);
-            return [orderId, item.productId, item.quantity, product.price];
-        });
-
-        await connection.query('INSERT INTO order_item (order_id, product_id, quantity, price_per_unit) VALUES ?', [orderItemsData]);
-
-        await connection.commit();
-
-        res.status(201).json({ message: 'Order placed successfully.', orderId, status: initialStatus });
-
+      await connection.beginTransaction();
+  
+      const productIds = items.map(item => item.productId);
+      const [products] = await connection.query(
+        'SELECT product_id, price, requires_prescription FROM product WHERE product_id IN (?)',
+        [productIds]
+      );
+  
+      const requiresPrescription = products.some(p => p.requires_prescription);
+      const initialStatus = requiresPrescription ? 'pending_prescription' : 'pending_payment';
+      console.log('Order requires prescription:', requiresPrescription, 'Initial Status:', initialStatus);
+  
+      let totalAmount = 0;
+      const productMap = new Map(products.map(p => [p.product_id, p]));
+      for (const item of items) {
+          const product = productMap.get(item.productId);
+          if (!product) throw new Error(`Product with ID ${item.productId} not found.`);
+          totalAmount += product.price * item.quantity;
+      }
+      console.log('Calculated Total Amount:', totalAmount);
+  
+      // --- UPDATED QUERY ---
+      // Now includes the branch_id in the insert statement.
+      const [orderResult] = await connection.query(
+        'INSERT INTO `order` (customer_id, branch_id, status, total_amount) VALUES (?, ?, ?, ?)',
+        [customerId, branchId, initialStatus, totalAmount]
+      );
+      const orderId = orderResult.insertId;
+      console.log('Order created with ID:', orderId);
+  
+      const orderItemsData = items.map(item => {
+          const product = productMap.get(item.productId);
+          return [orderId, item.productId, item.quantity, product.price];
+      });
+      
+      await connection.query(
+          'INSERT INTO order_item (order_id, product_id, quantity, price_per_unit) VALUES ?',
+          [orderItemsData]
+      );
+      console.log('Order items inserted.');
+  
+      await connection.commit();
+      console.log('--- ORDER PLACED SUCCESSFULLY ---');
+      
+      res.status(201).json({
+        message: 'Order placed successfully.',
+        orderId,
+        status: initialStatus,
+      });
+  
     } catch (error) {
-        await connection.rollback();
-        console.error('Error placing order:', error);
-        res.status(500).json({ message: 'Server error during order placement.' });
+      await connection.rollback();
+      console.error('--- ERROR PLACING ORDER ---', error);
+      res.status(500).json({ message: 'Server error during order placement.' });
     } finally {
-        connection.release();
+      connection.release();
     }
-};
+  };
 
 /**
  * @desc    Customer uploads a prescription for a specific order
@@ -212,77 +240,6 @@ const getOrderById = async (req, res) => {
 };
 
 /**
- * @desc    Customer "pays" for an order that is pending payment
- * @route   POST /api/orders/:id/pay
- * @access  Private (Customer)
- */
-const payForOrder = async (req, res) => {
-    const customerId = req.user.id;
-    const { id: orderId } = req.params;
-    const { paymentMethod } = req.body;
-
-    const connection = await db.getConnection();
-    try {
-        await connection.beginTransaction();
-
-        // 1. Verify the order is valid and ready for payment
-        const [orders] = await connection.query(
-            'SELECT * FROM `order` WHERE order_id = ? AND customer_id = ? AND status = "pending_payment" FOR UPDATE',
-            [orderId, customerId]
-        );
-
-        if (orders.length === 0) {
-            throw new Error('Order not found or not awaiting payment.');
-        }
-        const order = orders[0];
-
-        // 2. Get order items to update inventory
-        const [items] = await connection.query('SELECT product_id, quantity FROM order_item WHERE order_id = ?', [orderId]);
-
-        // 3. Update inventory for each item (critical step)
-        for (const item of items) {
-            await connection.query(
-                'UPDATE inventory SET quantity = quantity - ? WHERE product_id = ? AND quantity >= ?',
-                [item.quantity, item.product_id, item.quantity]
-            );
-            const [checkResult] = await connection.query('SELECT ROW_COUNT() as count');
-            if (checkResult[0].count === 0) {
-                throw new Error(`Insufficient stock for product ID ${item.product_id}.`);
-            }
-        }
-
-        // 4. Create payment record
-        const [paymentResult] = await connection.query(
-            'INSERT INTO payment (order_id, payment_method, amount, status, transaction_id) VALUES (?, ?, ?, ?, ?)',
-            [orderId, paymentMethod, order.total_amount, 'completed', `txn_${Date.now()}`]
-        );
-        const paymentId = paymentResult.insertId;
-
-        // 5. Create receipt record
-        await connection.query(
-            'INSERT INTO receipt (payment_id, receipt_data) VALUES (?, ?)',
-            [paymentId, JSON.stringify({ message: 'Payment successful' })]
-        );
-
-        // 6. Update order status
-        await connection.query(
-            "UPDATE `order` SET status = 'processing' WHERE order_id = ?",
-            [orderId]
-        );
-
-        await connection.commit();
-        res.status(200).json({ message: 'Payment successful. Your order is now being processed.' });
-
-    } catch (error) {
-        await connection.rollback();
-        console.error('Error processing payment for order:', error);
-        res.status(500).json({ message: error.message || 'Server error during payment processing.' });
-    } finally {
-        connection.release();
-    }
-}; // <-- Close the payForOrder function here
-
-/**
  * @desc    Customer initiates the payment process for an order
  * @route   POST /api/orders/:id/initiate-payment
  * @access  Private (Customer)
@@ -364,7 +321,6 @@ module.exports = {
     validateOrder,
     getPrescriptionsForOrder,
     getOrderById,
-    payForOrder,
     initiatePayment,
     getPaymentQueue,
     confirmPayment,

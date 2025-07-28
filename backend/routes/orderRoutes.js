@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
+
 const {
   placeInitialOrder,
   uploadPrescriptionForOrder,
@@ -9,7 +10,6 @@ const {
   validateOrder,
   getPrescriptionsForOrder,
   getOrderById,
-  payForOrder,
   initiatePayment,
   getPaymentQueue,
   confirmPayment,
@@ -26,18 +26,32 @@ const storage = multer.diskStorage({
   },
 });
 
+// --- CORRECTED AND MORE ROBUST FILE FILTER ---
 function checkFileType(file, cb) {
-  const filetypes = /jpeg|jpg|png|pdf/;
+  // Check if the file object and its originalname property exist
+  if (!file || !file.originalname || typeof file.originalname !== 'string') {
+    // Reject the file if it's malformed
+    return cb(new Error('Invalid file data received.'));
+  }
+
+  const filetypes = /jpeg|jpg|png/; // Removed PDF as per requirement
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = filetypes.test(file.mimetype);
+  const mimetype = file.mimetype && filetypes.test(file.mimetype);
+
   if (extname && mimetype) {
     return cb(null, true);
   } else {
-    cb('Error: Images and PDFs Only!');
+    // Use a proper error object for rejection
+    cb(new Error('Error: File upload only supports JPG and PNG formats.'));
   }
 }
 
-const upload = multer({ storage, fileFilter: checkFileType });
+const upload = multer({
+  storage,
+  fileFilter: function (req, file, cb) {
+    checkFileType(file, cb);
+  }
+});
 
 // Custom middleware for role authorization
 const authorize = (...roles) => {
@@ -55,17 +69,17 @@ const authorize = (...roles) => {
 router.post('/', protect, authorize('customer'), placeInitialOrder);
 router.post('/:id/prescriptions', protect, authorize('customer'), upload.single('prescriptionFile'), uploadPrescriptionForOrder);
 router.post('/:id/initiate-payment', protect, authorize('customer'), initiatePayment);
-router.post('/:id/pay', protect, authorize('customer'), payForOrder);
-router.get('/:id', protect, authorize('customer', 'pharmacist', 'cashier'), getOrderById);
-
 
 // Pharmacist routes
 router.get('/validation-queue', protect, authorize('pharmacist'), getValidationQueue);
 router.put('/:id/validate', protect, authorize('pharmacist'), validateOrder);
 router.get('/:id/prescriptions', protect, authorize('pharmacist'), getPrescriptionsForOrder);
 
-// Cashier routes
+// Cashier routes  
 router.get('/payment-queue', protect, authorize('cashier'), getPaymentQueue);
 router.post('/:id/confirm-payment', protect, authorize('cashier'), confirmPayment);
+
+// Generic route (MUST BE LAST due to :id parameter)
+router.get('/:id', protect, authorize('customer', 'pharmacist', 'cashier'), getOrderById);
 
 module.exports = router;
