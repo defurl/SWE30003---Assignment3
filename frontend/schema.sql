@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS product (
     description TEXT,
     price DECIMAL(10, 2) NOT NULL,
     requires_prescription BOOLEAN NOT NULL DEFAULT FALSE,
+    is_active BOOLEAN DEFAULT TRUE, -- <-- ADDED THIS LINE
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

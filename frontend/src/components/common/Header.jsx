@@ -1,61 +1,89 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
-import { PillIcon, ShoppingCartIcon, UserIcon, LogOutIcon, LayoutDashboardIcon } from './Icons.jsx';
+import React from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
+import {
+  PillIcon,
+  ShoppingCartIcon,
+  UserIcon,
+  LogOutIcon,
+  LayoutDashboardIcon,
+} from "./Icons.jsx";
 
 const Header = () => {
   const { user, logout } = useAuth();
 
   return (
-    <header className="bg-white shadow-md sticky top-0 z-50">
-      <div className="container mx-auto px-6 py-3">
+    <header className="bg-blue-500 shadow-md sticky top-0 z-50 ">
+      <div className="container mx-auto px-6 py-3 bg-blue-500">
         <div className="flex items-center justify-between">
-          <Link to="/" className="text-3xl font-bold text-blue-600 flex items-center gap-2">
-            <img src="/src/assets/longchau-logo.png" alt="Long Chau Logo" className="h-10"/>
-          </Link>
-          
+          <div className="flex items-center">
+            <Link to="/">
+              <img
+                src="/src/assets/longchau-logo.png"
+                alt="Long Chau Logo"
+                className="h-10"
+              />
+            </Link>
+            {/* --- ADDED: Main Navigation Links --- */}
+            <nav className="hidden md:flex items-center gap-6 ml-8">
+              <Link
+                to="/"
+                className="text-white font-medium hover:text-gray-200 transition-colors"
+              >
+                Home
+              </Link>
+              <Link
+                to="/medicines"
+                className="text-white font-medium hover:text-gray-200 transition-colors"
+              >
+                Medicines
+              </Link>
+            </nav>
+          </div>
+
           <div className="flex-1 max-w-xl mx-4">
-            <input 
-              type="text" 
-              placeholder="Tìm sản phẩm, bệnh, thương hiệu..." 
+            <input
+              type="text"
+              placeholder="Tìm sản phẩm, bệnh, thương hiệu..."
               className="w-full px-4 py-2 text-gray-700 bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           <div className="flex items-center gap-6">
-            {/* --- ROLE-BASED CONDITIONAL RENDERING --- */}
+            <Link
+              to="/order"
+              className="flex items-center gap-2 text-white hover:text-gray-200 transition-colors"
+            >
+              <ShoppingCartIcon />
+              <span>Giỏ hàng</span>
+            </Link>
 
-            {/* Show "Medicines" link for customers */}
-           {user?.role === 'customer' && (
-              <>
-                <Link to="/medicines" className="text-gray-700 hover:text-blue-600 transition-colors font-semibold">Home</Link>
-              </>
-            )}
-
-            {/* ONLY show "Cart" link for customers */}
-            {user?.role === 'customer' && (
-              <Link to="/order" className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors">
-                <ShoppingCartIcon />
-                <span>Cart</span>
-              </Link>
-            )}
-            
             {user ? (
               <div className="flex items-center gap-4">
-                <Link 
-                  to={user.role === 'customer' ? '/profile' : '/dashboard'} 
-                  className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors font-semibold"
+                <Link
+                  to={user.role === "customer" ? "/profile" : "/dashboard"}
+                  className="flex items-center gap-2 text-white hover:text-gray-200 transition-colors"
                 >
-                  {user.role === 'customer' ? <UserIcon /> : <LayoutDashboardIcon />}
+                  {user.role === "customer" ? (
+                    <UserIcon />
+                  ) : (
+                    <LayoutDashboardIcon />
+                  )}
                   <span>{user.name}</span>
                 </Link>
-                <button onClick={logout} className="text-gray-500 hover:text-red-600 transition-colors">
+                <button
+                  onClick={logout}
+                  className="text-white hover:text-red-300 transition-colors"
+                >
                   <LogOutIcon />
                 </button>
               </div>
             ) : (
-              <Link to="/login" className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
-                Login
+              <Link
+                to="/login"
+                className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+              >
+                Đăng nhập
               </Link>
             )}
           </div>

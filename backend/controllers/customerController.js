@@ -10,12 +10,12 @@ const db = require('../config/db');
 const getCustomerProfile = async (req, res) => {
   // The user's ID and role are attached to the request object by the authMiddleware
   const customerId = req.user.id;
-  // const userRole = req.user.role;
+  const userRole = req.user.role;
 
-  // // Security check: Ensure the user making the request is a customer
-  // if (userRole !== 'customer') {
-  //   return res.status(403).json({ message: 'Forbidden: Access is restricted to customers.' });
-  // }
+  // Security check: Ensure the user making the request is a customer
+  if (userRole !== 'customer') {
+    return res.status(403).json({ message: 'Forbidden: Access is restricted to customers.' });
+  }
 
   try {
     // Fetch personal details from the customer table

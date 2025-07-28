@@ -20,7 +20,7 @@ const LoginPage = () => {
         <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
             <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-lg">
                 <div className="text-center mb-8">
-                    <img src="/src/assets/longchau-logo.png" alt="Long Chau Logo" className="mx-auto h-12"/>
+                    <img src="https://nhathuoclongchau.com.vn/static/images/logo.svg" alt="Long Chau Logo" className="mx-auto h-12"/>
                     <h2 className="mt-6 text-3xl font-bold text-gray-900">Sign in to your account</h2>
                     <p className="mt-2 text-sm text-gray-600">usernames: customer, pharmacist, cashier, manager, or warehouse</p>
                     <p className="mt-2 text-sm text-gray-600">password: password123</p>

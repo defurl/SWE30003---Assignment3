@@ -18,7 +18,7 @@ const OperationMenu = ({ role }) => {
         ],
         cashier: [
             { name: 'Point of Sale (POS)', icon: <ShoppingCartIcon className="h-8 w-8 text-blue-600" /> },
-            { name: 'Process Returns', icon: <LogOutIcon className="h-8 w-8 text-blue-600" /> }
+            { name: 'Process Returns', icon: <LogOutIcon className="h-8 w-8 text-blue-600" /> }, // Placeholder icon
         ],
         branchManager: [
             { name: 'Generate Sales Report', icon: <BarChart3Icon className="h-8 w-8 text-blue-600" /> },
@@ -26,7 +26,7 @@ const OperationMenu = ({ role }) => {
         ],
         warehousePersonnel: [
             { name: 'Receive Incoming Stock', icon: <PackagePlusIcon className="h-8 w-8 text-blue-600" /> },
-            { name: 'Manage Branch Transfers', icon: <LayoutDashboardIcon className="h-8 w-8 text-blue-600" /> },
+            { name: 'Manage Branch Transfers', icon: <LayoutDashboardIcon className="h-8 w-8 text-blue-600" /> }, // Placeholder icon
         ],
     };
 

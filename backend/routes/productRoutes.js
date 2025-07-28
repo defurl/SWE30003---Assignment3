@@ -1,28 +1,40 @@
 // productRoutes.js
-// Author: Minh Hieu Tran
 // This file defines the API routes for product-related operations.
 
-const express = require('express');
+const express = require("express");
 const router = express.Router();
+const { protect } = require("../middleware/authMiddleware");
 
 // Import the controller functions that contain the logic for each route.
 const {
   getAllProducts,
   getProductById,
-} = require('../controllers/productController');
+  createProduct,
+  updateProduct,
+  deleteProduct,
+} = require("../controllers/productController");
 
-// --- Route Definitions ---
+// Custom middleware for role authorization
+const authorize = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return res
+        .status(403)
+        .json({
+          message: `Forbidden: This route is only for ${roles.join(" or ")}.`,
+        });
+    }
+    next();
+  };
+};
 
-// @route   GET /api/products
-// @desc    Get a list of all products
-// @access  Public
-router.get('/', getAllProducts);
+// --- Public Routes ---
+router.get("/", getAllProducts);
+router.get("/:id", getProductById);
 
-// @route   GET /api/products/:id
-// @desc    Get a single product by its ID
-// @access  Public
-router.get('/:id', getProductById);
-
-// We will add protected routes for POST, PUT, DELETE later.
+// --- Protected Manager Routes ---
+router.post("/", protect, authorize("branchManager"), createProduct);
+router.put("/:id", protect, authorize("branchManager"), updateProduct);
+router.delete("/:id", protect, authorize("branchManager"), deleteProduct);
 
 module.exports = router;

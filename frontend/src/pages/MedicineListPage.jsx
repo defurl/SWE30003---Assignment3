@@ -1,36 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import apiClient from '../api/apiClient';
-import { useCart } from '../contexts/CartContext';
 
-const MedicineCard = ({ medicine }) => {
-  const { addToCart } = useCart();
-
-  return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden group transform hover:-translate-y-1 transition-all duration-300 flex flex-col">
-      <Link to={`/medicines/${medicine.product_id}`} className="block flex-grow">
-        <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-          <span className="text-gray-500">{medicine.name}</span>
-        </div>
-        <div className="p-4 flex-grow flex flex-col">
-          <h3 className="font-bold text-lg text-gray-800">{medicine.name}</h3>
-          <p className="text-gray-600 text-sm mt-1 flex-grow">{medicine.description}</p>
-        </div>
-      </Link>
-      <div className="p-4 border-t mt-auto">
-        <div className="flex justify-between items-center">
+const MedicineCard = ({ medicine }) => (
+  <div className="bg-white rounded-lg shadow-md overflow-hidden group transform hover:-translate-y-1 transition-all duration-300">
+    <Link to={`/medicines/${medicine.product_id}`}>
+      {/* Using a placeholder image for now */}
+      <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
+        <span className="text-gray-500">{medicine.name}</span>
+      </div>
+      <div className="p-4">
+        <h3 className="font-bold text-lg mt-2 text-gray-800">{medicine.name}</h3>
+        <p className="text-gray-600 text-sm mt-1 truncate">{medicine.description}</p>
+        <div className="mt-4 flex justify-between items-center">
           <p className="text-blue-600 font-bold text-xl">{parseInt(medicine.price).toLocaleString('vi-VN')} VND</p>
-          <button 
-            onClick={() => addToCart(medicine)} 
-            className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-blue-600 transition-colors"
-          >
-            Add to Cart
-          </button>
+          <button className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity">Add to Cart</button>
         </div>
       </div>
-    </div>
-  );
-};
+    </Link>
+  </div>
+);
 
 const MedicineListPage = () => {
   const [medicines, setMedicines] = useState([]);

@@ -1,6 +1,6 @@
 // This controller handles all logic for prescription management.
 
-const db = require('../config/db');
+const db = require("../config/db");
 
 /**
  * @desc    Customer uploads a new prescription
@@ -9,26 +9,28 @@ const db = require('../config/db');
  */
 const uploadPrescription = async (req, res) => {
   const customerId = req.user.id;
-  
+
   if (!req.file) {
-    return res.status(400).json({ message: 'Please upload a file.' });
+    return res.status(400).json({ message: "Please upload a file." });
   }
 
   const imageUrl = `/uploads/${req.file.filename}`;
 
   try {
     const [result] = await db.query(
-      'INSERT INTO prescription (customer_id, image_url, status) VALUES (?, ?, ?)',
-      [customerId, imageUrl, 'pending']
+      "INSERT INTO prescription (customer_id, image_url, status) VALUES (?, ?, ?)",
+      [customerId, imageUrl, "pending"]
     );
-    res.status(201).json({ 
-        message: 'Prescription uploaded successfully.', 
-        prescriptionId: result.insertId,
-        filePath: imageUrl 
+    res.status(201).json({
+      message: "Prescription uploaded successfully.",
+      prescriptionId: result.insertId,
+      filePath: imageUrl,
     });
   } catch (error) {
-    console.error('Error uploading prescription:', error);
-    res.status(500).json({ message: 'Server error during prescription upload.' });
+    console.error("Error uploading prescription:", error);
+    res
+      .status(500)
+      .json({ message: "Server error during prescription upload." });
   }
 };
 
@@ -48,8 +50,10 @@ const getPendingPrescriptions = async (req, res) => {
     `);
     res.status(200).json(prescriptions);
   } catch (error) {
-    console.error('Error fetching pending prescriptions:', error);
-    res.status(500).json({ message: 'Server error while fetching prescriptions.' });
+    console.error("Error fetching pending prescriptions:", error);
+    res
+      .status(500)
+      .json({ message: "Server error while fetching prescriptions." });
   }
 };
 
@@ -63,8 +67,8 @@ const validatePrescription = async (req, res) => {
   const { id } = req.params;
   const { status, notes } = req.body;
 
-  if (!['approved', 'rejected'].includes(status)) {
-    return res.status(400).json({ message: 'Invalid status provided.' });
+  if (!["approved", "rejected"].includes(status)) {
+    return res.status(400).json({ message: "Invalid status provided." });
   }
 
   try {
@@ -74,12 +78,14 @@ const validatePrescription = async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Prescription not found or already validated.' });
+      return res
+        .status(404)
+        .json({ message: "Prescription not found or already validated." });
     }
     res.status(200).json({ message: `Prescription successfully ${status}.` });
   } catch (error) {
-    console.error('Error validating prescription:', error);
-    res.status(500).json({ message: 'Server error during validation.' });
+    console.error("Error validating prescription:", error);
+    res.status(500).json({ message: "Server error during validation." });
   }
 };
 
