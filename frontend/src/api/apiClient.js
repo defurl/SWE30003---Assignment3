@@ -103,41 +103,26 @@ const apiClient = {
   /**
    * (Customer) Places an initial order with items from the cart.
    * @param {Array} items - Array of { productId, quantity }.
-<<<<<<< HEAD
-=======
    * @param {number} branchId - The ID of the branch for the order.
->>>>>>> 68bbaab (Update: Core workflow completed)
    * @returns {Promise<object>} The server's response with orderId and status.
    */
   placeOrder: async (items, branchId) => {
     try {
       return await fetchWithAuth(`${API_BASE_URL}/orders`, {
         method: 'POST',
-<<<<<<< HEAD
-        body: JSON.stringify({ items, branchId }), // <-- Send branchId in the body
-=======
         body: JSON.stringify({ items, branchId }),
->>>>>>> 68bbaab (Update: Core workflow completed)
       });
     } catch (error) {
       console.error('Place Order API error:', error);
       throw error;
     }
   },
-<<<<<<< HEAD
-=======
-
->>>>>>> 68bbaab (Update: Core workflow completed)
   /**
    * (Customer) Uploads a prescription file for a specific order.
    * @param {string|number} orderId - The ID of the order.
    * @param {File} file - The file object to upload.
    * @returns {Promise<object>} The server's confirmation response.
    */
-<<<<<<< HEAD
-
-=======
->>>>>>> 68bbaab (Update: Core workflow completed)
   uploadPrescriptionForOrder: async (orderId, file) => {
     try {
       const formData = new FormData();
@@ -199,23 +184,6 @@ const apiClient = {
     }
   },
 
-<<<<<<< HEAD
-    /**
-   * Fetches a single order by its ID, including its items.
-   * @param {string|number} orderId - The ID of the order to fetch.
-   * @returns {Promise<object>} The order object with its line items.
-   */
-  getOrderById: async (orderId) => {
-    try {
-      return await fetchWithAuth(`${API_BASE_URL}/orders/${orderId}`);
-    } catch (error) {
-      console.error('Get Order By ID API error:', error);
-      throw error;
-    }
-  },
-
-=======
->>>>>>> 68bbaab (Update: Core workflow completed)
   /**
    * "Pays" for a specific order.
    * @param {string|number} orderId - The ID of the order to pay for.
@@ -279,8 +247,6 @@ const apiClient = {
       throw error;
     }
   },
-<<<<<<< HEAD
-=======
 
   /**
    * Gets detailed information about a specific order by ID.
@@ -295,7 +261,6 @@ const apiClient = {
       throw error;
     }
   },
->>>>>>> 68bbaab (Update: Core workflow completed)
   
 };
 
