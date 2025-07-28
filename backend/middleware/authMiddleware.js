@@ -22,12 +22,16 @@ const protect = (req, res, next) => {
       next();
     } catch (error) {
       console.error('Token verification failed:', error);
-      res.status(401).json({ message: 'Not authorized, token failed.' });
+      res.status(401).json({ message: 'Unauthorized' });
     }
+  }
+  else {
+    console.error('No token found.');
+    res.status(401).json({ message: 'Unauthorized' });
   }
 
   if (!token) {
-    res.status(401).json({ message: 'Not authorized, no token.' });
+    res.status(401).json({ message: 'Unauthorized' });
   }
 };
 

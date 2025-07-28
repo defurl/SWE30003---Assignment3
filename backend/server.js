@@ -21,11 +21,13 @@ const productRoutes = require('./routes/productRoutes');
 const managementRoutes = require('./routes/managementRoutes');
 const customerRoutes = require('./routes/customerRoutes');
 const orderRoutes = require('./routes/orderRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/management', managementRoutes);
 app.use('/api/customers', customerRoutes);
+app.use('/api/notifications', notificationRoutes);
 app.use('/api/orders', orderRoutes); // <-- USE NEW ORDER ROUTE
 
 app.get('/api', (req, res) => {

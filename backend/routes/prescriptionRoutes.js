@@ -49,9 +49,9 @@ const authorize = (...roles) => {
 
 // --- Route Definitions ---
 
-// @route   POST /api/prescriptions/upload
+// @route   POST /api/prescriptions
 // @desc    Customer uploads a prescription file
-router.post('/upload', protect, authorize('customer'), upload.single('prescriptionFile'), uploadPrescription);
+router.post('/', protect, authorize('customer'), upload.single('prescriptionFile'), uploadPrescription);
   
 // @route   GET /api/prescriptions/pending
 // @desc    Pharmacist gets pending prescriptions
