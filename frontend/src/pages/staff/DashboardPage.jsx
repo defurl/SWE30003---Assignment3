@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import OperationMenu from '../../components/dashboard/OperationMenu.jsx';
-import PrescriptionQueue from '../../components/dashboard/PrescriptionQueue.jsx'; // <-- IMPORT
+import OrderValidationQueue from '../../components/dashboard/OrderValidationQueue.jsx';
+import PaymentVerificationQueue from '../../components/dashboard/PaymentVerificationQueue.jsx';
 import apiClient from '../../api/apiClient';
 
 const QuickStatCard = ({ title, value, color = 'text-blue-600' }) => (
@@ -30,28 +31,26 @@ const DashboardPage = () => {
                         Welcome, <span className="font-semibold text-blue-600">{user.name}</span> | Role: <span className="font-semibold capitalize bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">{user.role.replace(/([A-Z])/g, ' $1')}</span>
                     </p>
                 </div>
-                
-                {dashboardData && (
-                    <div className="mb-10">
-                        <h2 className="text-2xl font-semibold text-gray-800 mb-4">At a Glance</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                           {Object.entries(dashboardData.quickStats).map(([title, value]) => (
-                               <QuickStatCard key={title} title={title} value={value} />
-                           ))}
-                        </div>
-                    </div>
-                )}
+            
 
                 {/* --- CONDITIONAL RENDERING FOR PHARMACIST --- */}
                 {user.role === 'pharmacist' && (
                     <div className="mt-10">
-                         <h2 className="text-2xl font-semibold text-gray-800 mb-4">Prescription Validation Queue</h2>
-                        <PrescriptionQueue />
+                         <h2 className="text-2xl font-semibold text-gray-800 mb-4">Order Validation Queue</h2>
+                        <OrderValidationQueue /> {/* <-- USE NEW COMPONENT */}
+                    </div>
+                )}
+
+                {user.role === 'cashier' && (
+                    <div className="mt-10">
+                         <h2 className="text-2xl font-semibold text-gray-800 mb-4">Payment Verification Queue</h2>
+                        <PaymentVerificationQueue />
                     </div>
                 )}
 
                 <div className="mt-10">
                     <OperationMenu role={user.role} />
+                    <h2>This is not developed and is only for display purpose</h2>
                 </div>
             </div>
         </div>

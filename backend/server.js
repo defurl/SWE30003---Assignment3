@@ -20,13 +20,13 @@ const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
 const managementRoutes = require('./routes/managementRoutes');
 const customerRoutes = require('./routes/customerRoutes');
-const prescriptionRoutes = require('./routes/prescriptionRoutes'); // <-- IMPORT THE NEW ROUTE FILE
+const orderRoutes = require('./routes/orderRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/management', managementRoutes);
 app.use('/api/customers', customerRoutes);
-app.use('/api/prescriptions', prescriptionRoutes); // <-- TELL EXPRESS TO USE THE ROUTES
+app.use('/api/orders', orderRoutes); // <-- USE NEW ORDER ROUTE
 
 app.get('/api', (req, res) => {
   res.json({ message: 'Welcome to the Long Chau PMS Backend API!' });
