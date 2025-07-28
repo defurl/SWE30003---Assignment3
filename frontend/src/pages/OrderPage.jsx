@@ -22,16 +22,9 @@ const OrderPage = () => {
       // We now pass the hardcoded branchId of 1, as required by the backend.
       const response = await apiClient.placeOrder(itemsToOrder, 1);
 
-      // --- CORRECTED REDIRECT LOGIC ---
       if (response.status === 'pending_prescription') {
-        // If prescription is needed, clear cart and redirect to the upload page.
-        clearCart();
         navigate(`/order/${response.orderId}/upload-prescription`);
       } else {
-        // If no prescription is needed, the order is ready for payment.
-        // Clear cart, show a message, and redirect to the profile page
-        // where the user can see the new order and pay.
-        clearCart();
         alert('Order placed successfully! Please go to your profile to complete payment.');
         navigate('/profile');
       }
@@ -94,12 +87,12 @@ const OrderPage = () => {
           </div>
           <button 
             onClick={handlePlaceOrder}
-            disabled={isLoading}
+            disabled={isLoading || cartItems.length === 0}
             className="w-full mt-6 bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400"
           >
             {isLoading ? 'Placing Order...' : 'Place Order'}
-          </button>
-          {error && <p className="text-red-500 text-sm mt-4 text-center">{error}</p>}
+        </button>
+        {error && <p className="text-red-500 text-sm mt-4 text-center">{error}</p>}
         </div>
       </div>
     </div>

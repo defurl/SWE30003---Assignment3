@@ -103,13 +103,14 @@ const apiClient = {
   /**
    * (Customer) Places an initial order with items from the cart.
    * @param {Array} items - Array of { productId, quantity }.
+   * @param {number} branchId - The ID of the branch for the order.
    * @returns {Promise<object>} The server's response with orderId and status.
    */
   placeOrder: async (items, branchId) => {
     try {
       return await fetchWithAuth(`${API_BASE_URL}/orders`, {
         method: 'POST',
-        body: JSON.stringify({ items, branchId }), // <-- Send branchId in the body
+        body: JSON.stringify({ items, branchId }),
       });
     } catch (error) {
       console.error('Place Order API error:', error);
@@ -122,7 +123,6 @@ const apiClient = {
    * @param {File} file - The file object to upload.
    * @returns {Promise<object>} The server's confirmation response.
    */
-
   uploadPrescriptionForOrder: async (orderId, file) => {
     try {
       const formData = new FormData();
@@ -180,20 +180,6 @@ const apiClient = {
       });
     } catch (error) {
       console.error('Validate Order API error:', error);
-      throw error;
-    }
-  },
-
-    /**
-   * Fetches a single order by its ID, including its items.
-   * @param {string|number} orderId - The ID of the order to fetch.
-   * @returns {Promise<object>} The order object with its line items.
-   */
-  getOrderById: async (orderId) => {
-    try {
-      return await fetchWithAuth(`${API_BASE_URL}/orders/${orderId}`);
-    } catch (error) {
-      console.error('Get Order By ID API error:', error);
       throw error;
     }
   },
@@ -258,6 +244,20 @@ const apiClient = {
       });
     } catch (error) {
       console.error('Confirm Payment API error:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Gets detailed information about a specific order by ID.
+   * @param {string|number} orderId - The ID of the order to fetch.
+   * @returns {Promise<object>} The order details including items.
+   */
+  getOrderById: async (orderId) => {
+    try {
+      return await fetchWithAuth(`${API_BASE_URL}/orders/${orderId}`);
+    } catch (error) {
+      console.error('Get Order By ID API error:', error);
       throw error;
     }
   },
