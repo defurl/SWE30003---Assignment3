@@ -1,7 +1,7 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const multer = require('multer');
-const path = require('path');
+const multer = require("multer");
+const path = require("path");
 
 const {
   placeInitialOrder,
@@ -13,36 +13,34 @@ const {
   initiatePayment,
   getPaymentQueue,
   confirmPayment,
-} = require('../controllers/orderController');
-const { protect } = require('../middleware/authMiddleware');
+} = require("../controllers/orderController");
+const { protect } = require("../middleware/authMiddleware");
 
-// --- Multer Configuration for File Uploads ---
 const storage = multer.diskStorage({
   destination(req, file, cb) {
-    cb(null, 'uploads/');
+    cb(null, "uploads/");
   },
   filename(req, file, cb) {
-    cb(null, `prescription-order-${req.params.id}-${Date.now()}${path.extname(file.originalname)}`);
+    cb(
+      null,
+      `prescription-order-${req.params.id}-${Date.now()}${path.extname(
+        file.originalname
+      )}`
+    );
   },
 });
 
-// --- CORRECTED AND MORE ROBUST FILE FILTER ---
 function checkFileType(file, cb) {
-  // Check if the file object and its originalname property exist
-  if (!file || !file.originalname || typeof file.originalname !== 'string') {
-    // Reject the file if it's malformed
-    return cb(new Error('Invalid file data received.'));
+  if (!file || !file.originalname || typeof file.originalname !== "string") {
+    return cb(new Error("Invalid file data received."));
   }
-
-  const filetypes = /jpeg|jpg|png/; // Removed PDF as per requirement
+  const filetypes = /jpeg|jpg|png/;
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
   const mimetype = file.mimetype && filetypes.test(file.mimetype);
-
   if (extname && mimetype) {
     return cb(null, true);
   } else {
-    // Use a proper error object for rejection
-    cb(new Error('Error: File upload only supports JPG and PNG formats.'));
+    cb(new Error("Error: File upload only supports JPG and PNG formats."));
   }
 }
 
@@ -50,36 +48,64 @@ const upload = multer({
   storage,
   fileFilter: function (req, file, cb) {
     checkFileType(file, cb);
-  }
+  },
 });
 
-// Custom middleware for role authorization
 const authorize = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ message: `Forbidden: This route is only for ${roles.join(' or ')}.` });
+      return res
+        .status(403)
+        .json({
+          message: `Forbidden: This route is only for ${roles.join(" or ")}.`,
+        });
     }
     next();
   };
 };
 
-// --- Route Definitions ---
+router.post("/", protect, authorize("customer"), placeInitialOrder);
+router.post(
+  "/:id/prescriptions",
+  protect,
+  authorize("customer"),
+  upload.single("prescriptionFile"),
+  uploadPrescriptionForOrder
+);
+router.post(
+  "/:id/initiate-payment",
+  protect,
+  authorize("customer"),
+  initiatePayment
+);
 
-// Customer routes
-router.post('/', protect, authorize('customer'), placeInitialOrder);
-router.post('/:id/prescriptions', protect, authorize('customer'), upload.single('prescriptionFile'), uploadPrescriptionForOrder);
-router.post('/:id/initiate-payment', protect, authorize('customer'), initiatePayment);
+router.get(
+  "/validation-queue",
+  protect,
+  authorize("pharmacist"),
+  getValidationQueue
+);
+router.put("/:id/validate", protect, authorize("pharmacist"), validateOrder);
+router.get(
+  "/:id/prescriptions",
+  protect,
+  authorize("pharmacist"),
+  getPrescriptionsForOrder
+);
 
-// Pharmacist routes
-router.get('/validation-queue', protect, authorize('pharmacist'), getValidationQueue);
-router.put('/:id/validate', protect, authorize('pharmacist'), validateOrder);
-router.get('/:id/prescriptions', protect, authorize('pharmacist'), getPrescriptionsForOrder);
+router.get("/payment-queue", protect, authorize("cashier"), getPaymentQueue);
+router.post(
+  "/:id/confirm-payment",
+  protect,
+  authorize("cashier"),
+  confirmPayment
+);
 
-// Cashier routes  
-router.get('/payment-queue', protect, authorize('cashier'), getPaymentQueue);
-router.post('/:id/confirm-payment', protect, authorize('cashier'), confirmPayment);
-
-// Generic route (MUST BE LAST due to :id parameter)
-router.get('/:id', protect, authorize('customer', 'pharmacist', 'cashier'), getOrderById);
+router.get(
+  "/:id",
+  protect,
+  authorize("customer", "pharmacist", "cashier", "warehousePersonnel"),
+  getOrderById
+);
 
 module.exports = router;
