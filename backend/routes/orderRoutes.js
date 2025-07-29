@@ -5,8 +5,6 @@ const path = require("path");
 
 const {
   placeInitialOrder,
-  uploadPrescriptionForOrder,
-  getValidationQueue,
   getOrderById,
   initiatePayment,
   getPaymentQueue,
@@ -63,13 +61,13 @@ const authorize = (...roles) => {
 };
 
 router.post("/", protect, authorize("customer"), placeInitialOrder);
-router.post(
-  "/:id/prescriptions",
-  protect,
-  authorize("customer"),
-  upload.single("prescriptionFile"),
-  uploadPrescriptionForOrder
-);
+// router.post(
+//   "/:id/prescriptions",
+//   protect,
+//   authorize("customer"),
+//   upload.single("prescriptionFile"),
+//   uploadPrescriptionForOrder
+// );
 router.post(
   "/:id/initiate-payment",
   protect,
@@ -77,12 +75,12 @@ router.post(
   initiatePayment
 );
 
-router.get(
-  "/validation-queue",
-  protect,
-  authorize("pharmacist"),
-  getValidationQueue
-);
+// router.get(
+//   "/validation-queue",
+//   protect,
+//   authorize("pharmacist"),
+//   getValidationQueue
+// );
 // router.put("/:id/validate", protect, authorize("pharmacist"), validateOrder);
 // router.get(
 //   "/:id/prescriptions",

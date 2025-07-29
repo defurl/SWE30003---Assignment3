@@ -135,7 +135,7 @@ CREATE TABLE `order` (
   `order_id` int(11) NOT NULL,
   `customer_id` int(11) DEFAULT NULL,
   `branch_id` int(11) DEFAULT NULL,
-  `status` varchar(50) NOT NULL DEFAULT 'pending_prescription' COMMENT 'pending_prescription, pending_payment, processing, completed, cancelled',
+  `status` varchar(50) NOT NULL DEFAULT 'pending_prescription' COMMENT 'pending_prescription, awaiting_prescription_validation, prescription_declined, awaiting_verification, pending_payment, processing, completed, cancelled',
   `total_amount` decimal(10,2) NOT NULL,
   `order_date` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

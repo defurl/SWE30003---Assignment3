@@ -98,19 +98,26 @@ const ProfilePage = () => {
         };
       case "cancelled":
         return { text: "Cancelled", className: "bg-red-100 text-red-800" };
+      case "prescription_declined":
+        return { text: "Prescription declined", className: "bg-red-100 text-red-800" };
+      case "awaiting_prescription_validation":
+        return {
+          text: "Awaiting prescription validation",
+          className: "bg-blue-100 text-blue-800",
+        };
       case "pending_payment":
         return {
-          text: "Pending Payment",
+          text: "Pending payment",
           className: "bg-blue-100 text-blue-800",
         };
       case "awaiting_verification":
         return {
-          text: "Awaiting Verification",
+          text: "Awaiting verification",
           className: "bg-cyan-100 text-cyan-800",
         };
       case "pending_prescription":
         return {
-          text: "Pending Prescription",
+          text: "Pending prescription",
           className: "bg-yellow-100 text-yellow-800",
         };
       default:
@@ -207,7 +214,7 @@ const ProfilePage = () => {
                                 Pay Now
                               </button>
                             )}
-                            {order.status === "pending_prescription" && (
+                            {(order.status === "pending_prescription" || order.status == "prescription_declined") && (
                               <Link
                                 to={`/order/${order.order_id}/upload-prescription`}
                                 className="bg-yellow-500 text-white text-xs font-bold py-1 px-3 rounded-full hover:bg-yellow-600"

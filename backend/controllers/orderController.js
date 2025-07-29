@@ -123,95 +123,95 @@ const placeInitialOrder = async (req, res) => {
   }
 };
 
-const uploadPrescriptionForOrder = async (req, res) => {
-  const customerId = req.user.id;
-  const { id: orderId } = req.params;
+// const uploadPrescriptionForOrder = async (req, res) => {
+//   const customerId = req.user.id;
+//   const { id: orderId } = req.params;
 
-  if (!req.file) {
-    return res.status(400).json({ message: "Please upload a file." });
-  }
+//   if (!req.file) {
+//     return res.status(400).json({ message: "Please upload a file." });
+//   }
 
-  const imageUrl = `/uploads/${req.file.filename}`;
+//   const imageUrl = `/uploads/${req.file.filename}`;
 
-  try {
-    const [orderCheck] = await db.query(
-      "SELECT status FROM `order` WHERE order_id = ? AND customer_id = ?",
-      [orderId, customerId]
-    );
-    if (
-      orderCheck.length === 0 ||
-      (orderCheck[0].status !== "pending_prescription" &&
-        orderCheck[0].status !== "cancelled")
-    ) {
-      return res
-        .status(403)
-        .json({ message: "This order is not awaiting a prescription." });
-    }
+//   try {
+//     const [orderCheck] = await db.query(
+//       "SELECT status FROM `order` WHERE order_id = ? AND customer_id = ?",
+//       [orderId, customerId]
+//     );
+//     if (
+//       orderCheck.length === 0 ||
+//       (orderCheck[0].status !== "pending_prescription" &&
+//         orderCheck[0].status !== "cancelled")
+//     ) {
+//       return res
+//         .status(403)
+//         .json({ message: "This order is not awaiting a prescription." });
+//     }
 
-    const [existingPrescriptions] = await db.query(
-      "SELECT status FROM prescription WHERE order_id = ? AND status = 'pending'",
-      [orderId]
-    );
+//     const [existingPrescriptions] = await db.query(
+//       "SELECT status FROM prescription WHERE order_id = ? AND status = 'pending'",
+//       [orderId]
+//     );
 
-    if (existingPrescriptions.length > 0) {
-      return res
-        .status(400)
-        .json({
-          message: "A prescription for this order is already pending review.",
-        });
-    }
+//     if (existingPrescriptions.length > 0) {
+//       return res
+//         .status(400)
+//         .json({
+//           message: "A prescription for this order is already pending review.",
+//         });
+//     }
 
-    const connection = await db.getConnection();
-    try {
-      await connection.beginTransaction();
+//     const connection = await db.getConnection();
+//     try {
+//       await connection.beginTransaction();
 
-      await connection.query(
-        "INSERT INTO prescription (customer_id, order_id, image_url, status) VALUES (?, ?, ?, ?)",
-        [customerId, orderId, imageUrl, "pending"]
-      );
+//       await connection.query(
+//         "INSERT INTO prescription (customer_id, order_id, image_url, status) VALUES (?, ?, ?, ?)",
+//         [customerId, orderId, imageUrl, "pending"]
+//       );
 
-      if (orderCheck[0].status === "cancelled") {
-        await connection.query(
-          "UPDATE `order` SET status = 'pending_prescription' WHERE order_id = ?",
-          [orderId]
-        );
-      }
+//       if (orderCheck[0].status === "cancelled") {
+//         await connection.query(
+//           "UPDATE `order` SET status = 'pending_prescription' WHERE order_id = ?",
+//           [orderId]
+//         );
+//       }
 
-      await connection.commit();
-      res
-        .status(201)
-        .json({
-          message: "Prescription uploaded successfully for your order.",
-        });
-    } catch (error) {
-      await connection.rollback();
-      throw error;
-    } finally {
-      connection.release();
-    }
-  } catch (error) {
-    console.error("Error uploading prescription for order:", error);
-    res
-      .status(500)
-      .json({ message: "Server error during prescription upload." });
-  }
-};
+//       await connection.commit();
+//       res
+//         .status(201)
+//         .json({
+//           message: "Prescription uploaded successfully for your order.",
+//         });
+//     } catch (error) {
+//       await connection.rollback();
+//       throw error;
+//     } finally {
+//       connection.release();
+//     }
+//   } catch (error) {
+//     console.error("Error uploading prescription for order:", error);
+//     res
+//       .status(500)
+//       .json({ message: "Server error during prescription upload." });
+//   }
+// };
 
-const getValidationQueue = async (req, res) => {
-  try {
-    const [orders] = await db.query(`
-            SELECT o.order_id, o.order_date, o.total_amount, c.first_name, c.last_name
-            FROM \`order\` o
-            JOIN customer c ON o.customer_id = c.customer_id
-            WHERE o.status = 'pending_prescription'
-            ORDER BY o.order_date ASC
-        `);
-    res.status(200).json(orders);
-  } catch (error) {
-    console.error("Error fetching validation queue:", error);
-    res.status(500).json({ message: "Server error while fetching queue." });
-  }
-};
+// const getValidationQueue = async (req, res) => {
+//   try {
+//     const [orders] = await db.query(`
+//             SELECT o.order_id, o.order_date, o.total_amount, c.first_name, c.last_name
+//             FROM \`order\` o
+//             JOIN customer c ON o.customer_id = c.customer_id
+//             WHERE o.status = 'pending_prescription'
+//             ORDER BY o.order_date ASC
+//         `);
+//     res.status(200).json(orders);
+//   } catch (error) {
+//     console.error("Error fetching validation queue:", error);
+//     res.status(500).json({ message: "Server error while fetching queue." });
+//   }
+// };
 
 // Kwan's note:
 // Define this function in the prescriptionController.js instead
@@ -436,8 +436,6 @@ const confirmPayment = async (req, res) => {
 
 module.exports = {
   placeInitialOrder,
-  uploadPrescriptionForOrder,
-  getValidationQueue,
   getOrderById,
   initiatePayment,
   getPaymentQueue,

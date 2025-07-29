@@ -67,7 +67,6 @@ const OrderValidationQueue = () => {
       await apiClient.validatePrescription(
         selectedOrder.prescription_id,
         decision,
-        decision === "rejected" ? prescriptionToReject.prescription_id : null,
         decision === "rejected" ? rejectionNotes : "Approved"
       );
 
@@ -122,7 +121,7 @@ const OrderValidationQueue = () => {
             ))
           ) : (
             <p className="text-gray-500 p-3">
-              No orders are awaiting validation.
+              No prescriptions are awaiting validation.
             </p>
           )}
         </ul>
@@ -165,7 +164,7 @@ const OrderValidationQueue = () => {
                 htmlFor="notes"
                 className="block text-sm font-medium text-gray-700"
               >
-                Rejection Notes (if rejecting)
+                Rejection notes (if rejecting)
               </label>
               <textarea
                 id="notes"
@@ -183,20 +182,20 @@ const OrderValidationQueue = () => {
                 disabled={prescriptions.length === 0}
                 className="flex-1 bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 disabled:bg-gray-400"
               >
-                Approve Order
+                Approve
               </button>
               <button
                 onClick={() => handleValidate("rejected")}
                 disabled={prescriptions.length === 0}
                 className="flex-1 bg-red-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-red-700 disabled:bg-gray-400"
               >
-                Reject Prescription
+                Reject
               </button>
             </div>
           </div>
         ) : (
           <div className="flex items-center justify-center h-full text-gray-500">
-            <p>Select an order from the queue to review its prescriptions.</p>
+            <p>Select a prescription from the queue to review it.</p>
           </div>
         )}
       </div>

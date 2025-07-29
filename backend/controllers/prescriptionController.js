@@ -28,33 +28,82 @@ const getPrescription = async (req, res) => {
 };
 
 /**
- * @desc    Customer uploads a new prescription
- * @route   POST /api/prescriptions
+ * @desc    Customer uploads a new prescription FOR an order
+ * @route   POST /api/prescriptions/:id
  * @access  Private (Customer)
  */
 const uploadPrescription = async (req, res) => {
-  const customerId = req.user.id;
-  
-  if (!req.file) {
-    return res.status(400).json({ message: 'Please upload a file.' });
-  }
+    const customerId = req.user.id;
+    const { id: orderId } = req.params;
 
-  const imageUrl = `/uploads/${req.file.filename}`;
+    if (!req.file) {
+      return res.status(400).json({ message: "Please upload a file." });
+    }
 
-  try {
-    const [result] = await db.query(
-      'INSERT INTO prescription (customer_id, image_url, status) VALUES (?, ?, ?)',
-      [customerId, imageUrl, 'pending']
-    );
-    res.status(201).json({ 
-        message: 'Prescription uploaded successfully.', 
-        prescriptionId: result.insertId,
-        filePath: imageUrl 
-    });
-  } catch (error) {
-    console.error('Error uploading prescription:', error);
-    res.status(500).json({ message: 'Server error during prescription upload.' });
-  }
+    const imageUrl = `/uploads/${req.file.filename}`;
+
+    try {
+      const [orderCheck] = await db.query(
+        "SELECT status FROM `order` WHERE order_id = ? AND customer_id = ?",
+        [orderId, customerId]
+      );
+      if (
+        orderCheck.length === 0 ||
+        (orderCheck[0].status !== "pending_prescription" && 
+          orderCheck[0].status !== "prescription_declined")
+      ) {
+        return res
+          .status(403)
+          .json({ message: "This order is not awaiting a prescription." });
+      }
+
+      const [existingPrescriptions] = await db.query(
+        "SELECT status FROM prescription WHERE order_id = ? AND status = 'pending'",
+        [orderId]
+      );
+
+      if (existingPrescriptions.length > 0) {
+        return res
+          .status(400)
+          .json({
+            message: "A prescription for this order is already pending review.",
+          });
+      }
+
+      const connection = await db.getConnection();
+      try {
+        await connection.beginTransaction();
+
+        await connection.query(
+          "INSERT INTO prescription (customer_id, order_id, image_url, status) VALUES (?, ?, ?, ?)",
+          [customerId, orderId, imageUrl, "pending"]
+        );
+
+        if (orderCheck[0].status === "pending_prescription" || orderCheck[0].status === "prescription_declined") {
+          await connection.query(
+            "UPDATE `order` SET status = 'awaiting_prescription_validation' WHERE order_id = ?",
+            [orderId]
+          );
+        }
+
+        await connection.commit();
+        res
+          .status(201)
+          .json({
+            message: "Prescription uploaded successfully for your order.",
+          });
+      } catch (error) {
+        await connection.rollback();
+        throw error;
+      } finally {
+        connection.release();
+      }
+    } catch (error) {
+      console.error("Error uploading prescription for order:", error);
+      res
+        .status(500)
+        .json({ message: "Server error during prescription upload." });
+    }
 };
 
 /**
@@ -115,7 +164,7 @@ const validatePrescription = async (req, res) => {
 
         if (decision === "approved") {
           await connection.query(
-            "UPDATE `order` SET status = 'pending_payment' WHERE order_id = ? AND status = 'pending_prescription'",
+            "UPDATE `order` SET status = 'pending_payment' WHERE order_id = ? AND status = 'awaiting_prescription_validation'",
             [orderId]
           );
           await connection.query(
@@ -128,7 +177,7 @@ const validatePrescription = async (req, res) => {
             [req.user.id, notes, id]
           );
           await connection.query(
-            "UPDATE `order` SET status = 'cancelled' WHERE order_id = ?",
+            "UPDATE `order` SET status = 'prescription_declined' WHERE order_id = ?",
             [orderId]
           );
         }

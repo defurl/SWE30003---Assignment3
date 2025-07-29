@@ -133,7 +133,7 @@ const apiClient = {
       formData.append("prescriptionFile", file);
 
       return await fetchWithAuth(
-        `${API_BASE_URL}/orders/${orderId}/prescriptions`,
+        `${API_BASE_URL}/prescriptions/${orderId}`,
         {
           method: "POST",
           body: formData,
