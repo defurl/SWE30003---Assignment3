@@ -1,12 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import apiClient from '../api/apiClient';
+import { useCart } from '../contexts/CartContext';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 const MedicineDetailPage = () => {
   const { id } = useParams();
+
+  const { isAuthenticated, user } = useAuth();
+
   const [medicine, setMedicine] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const { addToCart } = useCart();
+  const navigate = useNavigate();
+
+
+  const addProductToCart = () => {
+    if (!medicine) return;
+
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    addToCart(medicine);
+  };
 
   useEffect(() => {
     const fetchMedicine = async () => {
@@ -56,9 +77,26 @@ const MedicineDetailPage = () => {
             <p className="text-gray-600 mt-4 text-lg">{medicine.description}</p>
             <p className="text-blue-600 font-bold text-3xl mt-6">{parseInt(medicine.price).toLocaleString('vi-VN')} VND</p>
             <div className="mt-8">
-              <button className="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">
-                Add to Cart
-              </button>
+              {
+                isAuthenticated ? (
+                  <button onClick={addProductToCart} className="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">
+                    Add to Cart
+                  </button>
+                ) : (
+                  <>
+                    <div className="p-4 mb-4 text-md text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-blue-400" role="alert">
+                      <span className="font-medium">Sign-in required</span> 
+                      <br></br>
+                      Please sign in to add this medicine to your cart.
+                    </div>
+                    <button onClick={() => navigate('/login')} className="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">
+                      Sign in
+                    </button>
+                  </>
+                  
+                )
+              }
+
             </div>
           </div>
         </div>
