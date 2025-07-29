@@ -5,33 +5,30 @@ const CartContext = createContext(null);
 
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
-  const [cartBranchId, setCartBranchId] = useState(null); // <-- NEW: State to lock the branch
+  const [cartBranchId, setCartBranchId] = useState(null);
 
-  // For simplicity in this demo, we are assuming all orders originate from Branch 1
   const assumedBranchId = 1;
 
-  const addToCart = async (productToAdd) => {
+  const addToCart = async (productToAdd, quantity = 1) => {
     const currentBranchId = cartBranchId || assumedBranchId;
 
     try {
-      // Rule 1: Always check stock before adding
       const stock = await apiClient.checkStock(
         currentBranchId,
         productToAdd.product_id
       );
-
       const existingItem = cartItems.find(
         (item) => item.product_id === productToAdd.product_id
       );
       const quantityInCart = existingItem ? existingItem.quantity : 0;
 
-      // Rule 2: Check if there is enough stock
-      if (stock.quantity <= quantityInCart) {
-        alert(`Sorry, '${productToAdd.name}' is out of stock at this branch.`);
+      if (stock.quantity < quantityInCart + quantity) {
+        alert(
+          `Sorry, only ${stock.quantity} units of '${productToAdd.name}' are available at this branch.`
+        );
         return;
       }
 
-      // If cart is empty, set the branch ID
       if (cartItems.length === 0) {
         setCartBranchId(currentBranchId);
       }
@@ -40,13 +37,15 @@ export const CartProvider = ({ children }) => {
         if (existingItem) {
           return prevItems.map((item) =>
             item.product_id === productToAdd.product_id
-              ? { ...item, quantity: item.quantity + 1 }
+              ? { ...item, quantity: item.quantity + quantity }
               : item
           );
         }
-        return [...prevItems, { ...productToAdd, quantity: 1 }];
+        return [...prevItems, { ...productToAdd, quantity }];
       });
-      alert(`${productToAdd.name} has been added to your cart!`);
+      alert(
+        `${quantity} unit(s) of ${productToAdd.name} have been added to your cart!`
+      );
     } catch (error) {
       alert(`Error checking stock for ${productToAdd.name}: ${error.message}`);
     }
@@ -54,10 +53,9 @@ export const CartProvider = ({ children }) => {
 
   const clearCart = () => {
     setCartItems([]);
-    setCartBranchId(null); // <-- NEW: Reset the branch on clear
+    setCartBranchId(null);
   };
 
-  // Expose cartBranchId so the OrderPage can use it
   const value = { cartItems, cartBranchId, addToCart, clearCart };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
