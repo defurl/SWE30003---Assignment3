@@ -63,6 +63,7 @@ const loginUser = async (req, res) => {
             id: payload.id,
             name: `${user.first_name} ${user.last_name}`,
             role: payload.role,
+            branchId: payload.branchId,
           },
         });
       }

@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { generateSalesReport } = require("../controllers/reportController");
+const { generateSalesReport, generatePharmacistPerformanceReport, generateDeliveryReport } = require("../controllers/reportController");
 const { protect } = require("../middleware/authMiddleware");
 
 const authorize = (...roles) => {
@@ -20,5 +20,15 @@ const authorize = (...roles) => {
 // @desc    Generate a sales report
 // @access  Private (BranchManager)
 router.post("/sales", protect, authorize("branchManager"), generateSalesReport);
+
+// @route  POST /api/reports/pharmacists
+// @desc   Generate a pharmacist performance report
+// @access Private (BranchManager)
+router.post("/pharmacists", protect, authorize("branchManager"), generatePharmacistPerformanceReport);
+
+// @route  POST /api/reports/delivery
+// @desc   Generate a delivery report
+// @access Private (BranchManager)
+router.post("/delivery", protect, authorize("branchManager"), generateDeliveryReport);
 
 module.exports = router;

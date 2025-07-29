@@ -330,6 +330,43 @@ const apiClient = {
   },
 
   /**
+   * (Manager) Fetches a performance report for pharmacists.
+   * @param {string} startDate - The start date in YYYY-MM-DD format.
+   * @param {string} endDate - The end date in YYYY-MM-DD format.
+   * @return {Promise<object>} The pharmacist performance report data.
+   */
+  generatePharmacistReport: async (startDate, endDate) => {
+    try {
+      return await fetchWithAuth(`${API_BASE_URL}/reports/pharmacists`, {
+        method: "POST",
+        body: JSON.stringify({ startDate, endDate }),
+      });
+    } catch (error) {
+      console.error("Generate Pharmacist Performance Report API error:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * (Manager) Fetches a delivery report for a given date range.
+   * @param {string} startDate - The start date in YYYY-MM-DD format.
+   * @param {string} endDate - The end date in YYYY-MM-DD format.
+   * @returns {Promise<object>} The delivery report data.
+   */
+
+  generateDeliveryReport: async (startDate, endDate) => {
+    try {
+      return await fetchWithAuth(`${API_BASE_URL}/reports/delivery`, {
+        method: "POST",
+        body: JSON.stringify({ startDate, endDate }),
+      });
+    } catch (error) {
+      console.error("Generate Delivery Report API error:", error);
+      throw error;
+    }
+  },
+
+  /**
    * (Warehouse) Fetches the queue of orders ready for fulfillment.
    * @returns {Promise<Array<object>>} The list of orders to be fulfilled.
    */

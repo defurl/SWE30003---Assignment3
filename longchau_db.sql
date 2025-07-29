@@ -79,7 +79,8 @@ CREATE TABLE `delivery` (
   `address` text DEFAULT NULL,
   `status` varchar(50) NOT NULL DEFAULT 'preparing' COMMENT 'preparing, out_for_delivery, delivered, picked_up',
   `tracking_number` varchar(100) DEFAULT NULL,
-  `estimated_delivery_date` date DEFAULT NULL
+  `estimated_delivery_date` date DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------

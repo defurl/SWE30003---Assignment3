@@ -20,13 +20,13 @@ const WarehouseDashboard = () => {
             onClick={() => setActiveTab("fulfillment")}
             className={tabClass("fulfillment")}
           >
-            Fulfillment Queue
+            Fulfillment queue
           </button>
           <button
             onClick={() => setActiveTab("stock")}
             className={tabClass("stock")}
           >
-            Stock Management
+            Stock management
           </button>
         </nav>
       </div>

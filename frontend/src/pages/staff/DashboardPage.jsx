@@ -2,11 +2,13 @@ import React from "react";
 import { useAuth } from "../../hooks/useAuth";
 import OrderValidationQueue from "../../components/dashboard/OrderValidationQueue.jsx";
 import PaymentVerificationQueue from "../../components/dashboard/PaymentVerificationQueue.jsx";
-import SalesReport from "../../components/dashboard/SalesReport.jsx";
+import PerformanceReport from "../../components/dashboard/PerformanceReport.jsx";
 import WarehouseDashboard from "../../components/dashboard/WarehouseDashboard.jsx";
 
 const DashboardPage = () => {
   const { user } = useAuth();
+
+  console.log(user)
 
   const renderMainComponent = () => {
     switch (user.role) {
@@ -15,7 +17,7 @@ const DashboardPage = () => {
       case "cashier":
         return <PaymentVerificationQueue />;
       case "branchManager":
-        return <SalesReport />;
+        return <PerformanceReport />;
       case "warehousePersonnel":
         return <WarehouseDashboard />;
       default:
@@ -34,6 +36,9 @@ const DashboardPage = () => {
             Role:{" "}
             <span className="font-semibold capitalize bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
               {user.role.replace(/([A-Z])/g, " $1")}
+            </span> |
+            <span className="text-gray-500">
+              {user.branchId ? ` Branch: ${user.branchId}` : " No branch assigned"}
             </span>
           </p>
         </div>

@@ -59,7 +59,7 @@ const FulfillmentQueue = () => {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-1 bg-white p-4 rounded-lg shadow-md">
         <h3 className="font-semibold text-lg mb-4 border-b pb-2">
-          Fulfillment Queue ({queue.length})
+          Fulfillment queue ({queue.length})
         </h3>
         <ul className="space-y-2 max-h-[60vh] overflow-y-auto">
           {queue.map((order) => (
@@ -98,18 +98,18 @@ const FulfillmentQueue = () => {
           orderDetails ? (
             <div>
               <h3 className="text-xl font-bold mb-4">
-                Processing Order #{selectedOrder.order_id}
+                Processing order #{selectedOrder.order_id}
               </h3>
 
               {orderDetails.delivery ? (
                 <div className="mb-4 p-4 bg-gray-50 rounded-lg">
                   <p className="font-semibold text-gray-800">
-                    Fulfillment Details
+                    Fulfillment details
                   </p>
                   <p>
                     <strong>Method:</strong>{" "}
                     <span className="capitalize">
-                      {orderDetails.delivery.delivery_method.replace("_", " ")}
+                      {orderDetails.delivery.delivery_method}
                     </span>
                   </p>
                   {orderDetails.delivery.delivery_method ===
@@ -134,7 +134,6 @@ const FulfillmentQueue = () => {
                 ))}
               </div>
               <div className="space-y-2">
-                <p className="text-sm font-medium">Update Status:</p>
                 {orderDetails.delivery?.delivery_method ===
                 "in_store_pickup" ? (
                   <div className="flex gap-2">
