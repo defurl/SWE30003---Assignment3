@@ -147,11 +147,13 @@ const apiClient = {
 
   /**
    * (Pharmacist) Fetches all orders with a 'pending_prescription' status.
+   * Kwan's note: Why do we have a "getPendingPrescriptions" in prescription but you
+   * also have a "getOrderValidationQueue" in orders?
    * @returns {Promise<Array<object>>} A list of pending order objects.
    */
   getOrderValidationQueue: async () => {
     try {
-      return await fetchWithAuth(`${API_BASE_URL}/orders/validation-queue`);
+      return await fetchWithAuth(`${API_BASE_URL}/prescriptions/pending`);
     } catch (error) {
       console.error("Get Order Validation Queue API error:", error);
       throw error;
@@ -163,10 +165,10 @@ const apiClient = {
    * @param {string|number} orderId - The ID of the order.
    * @returns {Promise<Array<object>>} A list of prescription objects for that order.
    */
-  getOrderPrescriptions: async (orderId) => {
+  getOrderPrescriptions: async (prescriptionId) => {
     try {
       return await fetchWithAuth(
-        `${API_BASE_URL}/orders/${orderId}/prescriptions`
+        `${API_BASE_URL}/prescriptions/details/${prescriptionId}`
       );
     } catch (error) {
       console.error("Get Order Prescriptions API error:", error);
@@ -182,14 +184,14 @@ const apiClient = {
    * @param {string} notes - Rejection notes from the pharmacist.
    * @returns {Promise<object>} The server's confirmation response.
    */
-  validateOrder: async (orderId, decision, prescriptionId, notes) => {
+  validatePrescription: async (prescriptionId, decision, notes) => {
     try {
-      return await fetchWithAuth(`${API_BASE_URL}/orders/${orderId}/validate`, {
+      return await fetchWithAuth(`${API_BASE_URL}/prescriptions/${prescriptionId}/validate`, {
         method: "PUT",
-        body: JSON.stringify({ decision, prescriptionId, notes }),
+        body: JSON.stringify({ decision, notes }),
       });
     } catch (error) {
-      console.error("Validate Order API error:", error);
+      console.error("Validate Prescription API error:", error);
       throw error;
     }
   },

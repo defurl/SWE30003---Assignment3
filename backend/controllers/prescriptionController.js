@@ -4,7 +4,32 @@ const db = require('../config/db');
 
 /**
  * @desc    Customer uploads a new prescription
- * @route   POST /api/prescriptions/upload
+ * @route   GET /api/prescriptions/details/:id
+ * @access  Private (Pharmacist)
+ */
+const getPrescription = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    if (req.user.role !== "pharmacist") {
+      return res.status(403).json({ message: "Forbidden." });
+    }
+    const [prescriptions] = await db.query(
+      "SELECT prescription_id, image_url, uploaded_at FROM prescription WHERE prescription_id = ? AND status = 'pending'",
+      [id]
+    );
+    res.status(200).json(prescriptions);
+  } catch (error) {
+    console.error("Error fetching prescriptions for order:", error);
+    res
+      .status(500)
+      .json({ message: "Server error while fetching prescriptions." });
+  }
+};
+
+/**
+ * @desc    Customer uploads a new prescription
+ * @route   POST /api/prescriptions
  * @access  Private (Customer)
  */
 const uploadPrescription = async (req, res) => {
@@ -40,7 +65,7 @@ const uploadPrescription = async (req, res) => {
 const getPendingPrescriptions = async (req, res) => {
   try {
     const [prescriptions] = await db.query(`
-      SELECT p.prescription_id, p.image_url, p.uploaded_at, c.first_name, c.last_name
+      SELECT p.prescription_id, p.image_url, p.uploaded_at, p.order_id, c.first_name, c.last_name
       FROM prescription p
       JOIN customer c ON p.customer_id = c.customer_id
       WHERE p.status = 'pending'
@@ -59,31 +84,71 @@ const getPendingPrescriptions = async (req, res) => {
  * @access  Private (Pharmacist)
  */
 const validatePrescription = async (req, res) => {
-  const pharmacistId = req.user.id;
   const { id } = req.params;
-  const { status, notes } = req.body;
+  const { decision, notes } = req.body;
 
-  if (!['approved', 'rejected'].includes(status)) {
-    return res.status(400).json({ message: 'Invalid status provided.' });
+  if (!["approved", "rejected"].includes(decision)) {
+    return res.status(400).json({ message: "Invalid decision." });
+  }
+  if (decision === "rejected" && !id) {
+    return res
+      .status(400)
+      .json({ message: "Prescription ID is required for rejection." });
   }
 
-  try {
-    const [result] = await db.query(
-      'UPDATE prescription SET status = ?, pharmacist_id = ?, notes = ?, validated_at = CURRENT_TIMESTAMP WHERE prescription_id = ? AND status = "pending"',
-      [status, pharmacistId, notes, id]
-    );
+  const connection = await db.getConnection();
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Prescription not found or already validated.' });
+  try {
+    await connection.beginTransaction();
+
+    // First we fetch the prescription details
+    const [prescriptionRows] = await connection.query(
+      "SELECT prescription_id, order_id FROM prescription WHERE prescription_id = ? AND status = 'pending'",
+      [id]
+    );
+    
+    if (prescriptionRows.length === 0) {
+      res.status(404).json({ message: "Prescription not found." });
     }
-    res.status(200).json({ message: `Prescription successfully ${status}.` });
+    else {
+        const orderId = prescriptionRows[0].order_id;
+
+        if (decision === "approved") {
+          await connection.query(
+            "UPDATE `order` SET status = 'pending_payment' WHERE order_id = ? AND status = 'pending_prescription'",
+            [orderId]
+          );
+          await connection.query(
+            "UPDATE prescription SET status = 'approved', pharmacist_id = ?, notes = 'Approved', validated_at = CURRENT_TIMESTAMP WHERE order_id = ? AND status = 'pending'",
+            [req.user.id, orderId]
+          );
+        } else {
+          await connection.query(
+            "UPDATE prescription SET status = 'rejected', pharmacist_id = ?, notes = ?, validated_at = CURRENT_TIMESTAMP WHERE prescription_id = ?",
+            [req.user.id, notes, id]
+          );
+          await connection.query(
+            "UPDATE `order` SET status = 'cancelled' WHERE order_id = ?",
+            [orderId]
+          );
+        }
+    }
+
+    await connection.commit();
+    res.status(200).json({ message: `Prescription has been ${decision}.` });
   } catch (error) {
-    console.error('Error validating prescription:', error);
-    res.status(500).json({ message: 'Server error during validation.' });
+    await connection.rollback();
+    console.error("Error validating prescription:", error);
+    res
+      .status(500)
+      .json({ message: error.message || "Server error during validation." });
+  } finally {
+    connection.release();
   }
 };
 
 module.exports = {
+  getPrescription,
   uploadPrescription,
   getPendingPrescriptions,
   validatePrescription,

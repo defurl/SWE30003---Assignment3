@@ -149,7 +149,7 @@ const uploadPrescriptionForOrder = async (req, res) => {
     }
 
     const [existingPrescriptions] = await db.query(
-      "SELECT status FROM prescription WHERE order_id = ? AND status = 'uploaded'",
+      "SELECT status FROM prescription WHERE order_id = ? AND status = 'pending'",
       [orderId]
     );
 
@@ -167,7 +167,7 @@ const uploadPrescriptionForOrder = async (req, res) => {
 
       await connection.query(
         "INSERT INTO prescription (customer_id, order_id, image_url, status) VALUES (?, ?, ?, ?)",
-        [customerId, orderId, imageUrl, "uploaded"]
+        [customerId, orderId, imageUrl, "pending"]
       );
 
       if (orderCheck[0].status === "cancelled") {
@@ -213,75 +213,80 @@ const getValidationQueue = async (req, res) => {
   }
 };
 
-const validateOrder = async (req, res) => {
-  const { id: orderId } = req.params;
-  const { decision, prescriptionId, notes } = req.body;
+// Kwan's note:
+// Define this function in the prescriptionController.js instead
 
-  if (!["approved", "rejected"].includes(decision)) {
-    return res.status(400).json({ message: "Invalid decision." });
-  }
-  if (decision === "rejected" && !prescriptionId) {
-    return res
-      .status(400)
-      .json({ message: "Prescription ID is required for rejection." });
-  }
+// const validateOrder = async (req, res) => {
+//   const { id: orderId } = req.params;
+//   const { decision, prescriptionId, notes } = req.body;
 
-  const connection = await db.getConnection();
+//   if (!["approved", "rejected"].includes(decision)) {
+//     return res.status(400).json({ message: "Invalid decision." });
+//   }
+//   if (decision === "rejected" && !prescriptionId) {
+//     return res
+//       .status(400)
+//       .json({ message: "Prescription ID is required for rejection." });
+//   }
 
-  try {
-    await connection.beginTransaction();
+//   const connection = await db.getConnection();
 
-    if (decision === "approved") {
-      await connection.query(
-        "UPDATE `order` SET status = 'pending_payment' WHERE order_id = ? AND status = 'pending_prescription'",
-        [orderId]
-      );
-      await connection.query(
-        "UPDATE prescription SET status = 'approved', pharmacist_id = ?, notes = 'Approved', validated_at = CURRENT_TIMESTAMP WHERE order_id = ? AND status = 'uploaded'",
-        [req.user.id, orderId]
-      );
-    } else {
-      await connection.query(
-        "UPDATE prescription SET status = 'rejected', pharmacist_id = ?, notes = ?, validated_at = CURRENT_TIMESTAMP WHERE prescription_id = ?",
-        [req.user.id, notes, prescriptionId]
-      );
-      await connection.query(
-        "UPDATE `order` SET status = 'cancelled' WHERE order_id = ?",
-        [orderId]
-      );
-    }
+//   try {
+//     await connection.beginTransaction();
 
-    await connection.commit();
-    res.status(200).json({ message: `Prescription has been ${decision}.` });
-  } catch (error) {
-    await connection.rollback();
-    console.error("Error validating order:", error);
-    res
-      .status(500)
-      .json({ message: error.message || "Server error during validation." });
-  } finally {
-    connection.release();
-  }
-};
+//     if (decision === "approved") {
+//       await connection.query(
+//         "UPDATE `order` SET status = 'pending_payment' WHERE order_id = ? AND status = 'pending_prescription'",
+//         [orderId]
+//       );
+//       await connection.query(
+//         "UPDATE prescription SET status = 'approved', pharmacist_id = ?, notes = 'Approved', validated_at = CURRENT_TIMESTAMP WHERE order_id = ? AND status = 'pending'",
+//         [req.user.id, orderId]
+//       );
+//     } else {
+//       await connection.query(
+//         "UPDATE prescription SET status = 'rejected', pharmacist_id = ?, notes = ?, validated_at = CURRENT_TIMESTAMP WHERE prescription_id = ?",
+//         [req.user.id, notes, prescriptionId]
+//       );
+//       await connection.query(
+//         "UPDATE `order` SET status = 'cancelled' WHERE order_id = ?",
+//         [orderId]
+//       );
+//     }
 
-const getPrescriptionsForOrder = async (req, res) => {
-  const { id: orderId } = req.params;
-  try {
-    if (req.user.role !== "pharmacist") {
-      return res.status(403).json({ message: "Forbidden." });
-    }
-    const [prescriptions] = await db.query(
-      "SELECT prescription_id, image_url, uploaded_at FROM prescription WHERE order_id = ? AND status = 'uploaded'",
-      [orderId]
-    );
-    res.status(200).json(prescriptions);
-  } catch (error) {
-    console.error("Error fetching prescriptions for order:", error);
-    res
-      .status(500)
-      .json({ message: "Server error while fetching prescriptions." });
-  }
-};
+//     await connection.commit();
+//     res.status(200).json({ message: `Prescription has been ${decision}.` });
+//   } catch (error) {
+//     await connection.rollback();
+//     console.error("Error validating order:", error);
+//     res
+//       .status(500)
+//       .json({ message: error.message || "Server error during validation." });
+//   } finally {
+//     connection.release();
+//   }
+// };
+
+// Kwan's note:
+// prescription controller already contained a function to get prescriptions by prescription ID
+// const getPrescriptionsForOrder = async (req, res) => {
+//   const { id: orderId } = req.params;
+//   try {
+//     if (req.user.role !== "pharmacist") {
+//       return res.status(403).json({ message: "Forbidden." });
+//     }
+//     const [prescriptions] = await db.query(
+//       "SELECT prescription_id, image_url, uploaded_at FROM prescription WHERE order_id = ? AND status = 'pending'",
+//       [orderId]
+//     );
+//     res.status(200).json(prescriptions);
+//   } catch (error) {
+//     console.error("Error fetching prescriptions for order:", error);
+//     res
+//       .status(500)
+//       .json({ message: "Server error while fetching prescriptions." });
+//   }
+// };
 
 const getOrderById = async (req, res) => {
   const { id: orderId } = req.params;
@@ -433,8 +438,6 @@ module.exports = {
   placeInitialOrder,
   uploadPrescriptionForOrder,
   getValidationQueue,
-  validateOrder,
-  getPrescriptionsForOrder,
   getOrderById,
   initiatePayment,
   getPaymentQueue,

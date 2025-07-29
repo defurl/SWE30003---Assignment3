@@ -6,6 +6,7 @@ const {
   uploadPrescription,
   getPendingPrescriptions,
   validatePrescription,
+  getPrescription,
 } = require('../controllers/prescriptionController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -48,6 +49,10 @@ const authorize = (...roles) => {
 };
 
 // --- Route Definitions ---
+
+// @route   GET /api/prescriptions/details/:id
+// @desc    Pharmacist gets a specific prescription by ID
+router.get('/details/:id', protect, authorize('pharmacist'), getPrescription);
 
 // @route   POST /api/prescriptions
 // @desc    Customer uploads a prescription file

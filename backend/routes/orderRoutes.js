@@ -7,8 +7,6 @@ const {
   placeInitialOrder,
   uploadPrescriptionForOrder,
   getValidationQueue,
-  validateOrder,
-  getPrescriptionsForOrder,
   getOrderById,
   initiatePayment,
   getPaymentQueue,
@@ -85,13 +83,13 @@ router.get(
   authorize("pharmacist"),
   getValidationQueue
 );
-router.put("/:id/validate", protect, authorize("pharmacist"), validateOrder);
-router.get(
-  "/:id/prescriptions",
-  protect,
-  authorize("pharmacist"),
-  getPrescriptionsForOrder
-);
+// router.put("/:id/validate", protect, authorize("pharmacist"), validateOrder);
+// router.get(
+//   "/:id/prescriptions",
+//   protect,
+//   authorize("pharmacist"),
+//   getPrescriptionsForOrder
+// );
 
 router.get("/payment-queue", protect, authorize("cashier"), getPaymentQueue);
 router.post(

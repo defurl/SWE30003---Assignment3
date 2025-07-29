@@ -35,12 +35,12 @@ const OrderValidationQueue = () => {
     setRejectionNotes(""); // Clear notes when selecting a new order
 
     try {
-      const data = await apiClient.getOrderPrescriptions(order.order_id);
+      const data = await apiClient.getOrderPrescriptions(order.prescription_id);
       setPrescriptions(data);
     } catch (err) {
       console.error("Error fetching prescriptions:", err);
       setError(
-        `Could not fetch prescriptions for order #${order.order_id}: ${err.message}`
+        `Could not fetch prescriptions for order #${order.prescription_id}: ${err.message}`
       );
       setPrescriptions([]);
     } finally {
@@ -64,15 +64,15 @@ const OrderValidationQueue = () => {
     }
 
     try {
-      await apiClient.validateOrder(
-        selectedOrder.order_id,
+      await apiClient.validatePrescription(
+        selectedOrder.prescription_id,
         decision,
         decision === "rejected" ? prescriptionToReject.prescription_id : null,
         decision === "rejected" ? rejectionNotes : "Approved"
       );
 
       alert(
-        `The prescription for order #${selectedOrder.order_id} has been ${decision}.`
+        `The prescription for prescription #${selectedOrder.prescription_id} has been ${decision}.`
       );
       setSelectedOrder(null);
       setPrescriptions([]);
@@ -94,26 +94,29 @@ const OrderValidationQueue = () => {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-1 bg-white p-4 rounded-lg shadow-md">
         <h3 className="font-semibold text-lg mb-4 border-b pb-2">
-          Orders Awaiting Validation ({orders.length})
+          Awaiting validation ({orders.length})
         </h3>
         <ul className="space-y-2 max-h-[60vh] overflow-y-auto">
           {orders.length > 0 ? (
             orders.map((order) => (
               <li
-                key={order.order_id}
+                key={order.prescription_id}
                 onClick={() => handleSelectOrder(order)}
                 className={`p-3 rounded-md cursor-pointer transition-colors ${
-                  selectedOrder?.order_id === order.order_id
+                  selectedOrder?.prescription_id === order.prescription_id
                     ? "bg-blue-100 ring-2 ring-blue-500"
                     : "hover:bg-gray-100"
                 }`}
               >
-                <p className="font-semibold">Order #{order.order_id}</p>
+                <p className="font-semibold">Prescription #{order.prescription_id}</p>
                 <p className="text-sm text-gray-600">
                   Customer: {order.first_name} {order.last_name}
                 </p>
                 <p className="text-xs text-gray-400">
-                  Received: {new Date(order.order_date).toLocaleString()}
+                  Received: {new Date(order.uploaded_at).toLocaleString()}
+                </p>
+                <p className="text-xs text-gray-400">
+                  Order ID: {order.order_id}
                 </p>
               </li>
             ))
@@ -129,7 +132,7 @@ const OrderValidationQueue = () => {
         {selectedOrder ? (
           <div>
             <h3 className="text-xl font-bold mb-4">
-              Reviewing Order #{selectedOrder.order_id}
+              Reviewing prescription #{selectedOrder.prescription_id}
             </h3>
             {loadingPrescriptions ? (
               <p>Loading prescriptions...</p>
