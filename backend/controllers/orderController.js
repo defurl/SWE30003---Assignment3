@@ -134,25 +134,61 @@ const uploadPrescriptionForOrder = async (req, res) => {
   const imageUrl = `/uploads/${req.file.filename}`;
 
   try {
-    const [orders] = await db.query(
-      'SELECT * FROM `order` WHERE order_id = ? AND customer_id = ? AND status = "pending_prescription"',
+    const [orderCheck] = await db.query(
+      "SELECT status FROM `order` WHERE order_id = ? AND customer_id = ?",
       [orderId, customerId]
     );
-    if (orders.length === 0) {
+    if (
+      orderCheck.length === 0 ||
+      (orderCheck[0].status !== "pending_prescription" &&
+        orderCheck[0].status !== "cancelled")
+    ) {
       return res
-        .status(404)
-        .json({ message: "Order not found or not awaiting prescription." });
+        .status(403)
+        .json({ message: "This order is not awaiting a prescription." });
     }
 
-    const [result] = await db.query(
-      "INSERT INTO prescription (customer_id, order_id, image_url, status) VALUES (?, ?, ?, ?)",
-      [customerId, orderId, imageUrl, "uploaded"]
+    const [existingPrescriptions] = await db.query(
+      "SELECT status FROM prescription WHERE order_id = ? AND status = 'uploaded'",
+      [orderId]
     );
 
-    res.status(201).json({
-      message: "Prescription uploaded successfully for your order.",
-      prescriptionId: result.insertId,
-    });
+    if (existingPrescriptions.length > 0) {
+      return res
+        .status(400)
+        .json({
+          message: "A prescription for this order is already pending review.",
+        });
+    }
+
+    const connection = await db.getConnection();
+    try {
+      await connection.beginTransaction();
+
+      await connection.query(
+        "INSERT INTO prescription (customer_id, order_id, image_url, status) VALUES (?, ?, ?, ?)",
+        [customerId, orderId, imageUrl, "uploaded"]
+      );
+
+      if (orderCheck[0].status === "cancelled") {
+        await connection.query(
+          "UPDATE `order` SET status = 'pending_prescription' WHERE order_id = ?",
+          [orderId]
+        );
+      }
+
+      await connection.commit();
+      res
+        .status(201)
+        .json({
+          message: "Prescription uploaded successfully for your order.",
+        });
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
   } catch (error) {
     console.error("Error uploading prescription for order:", error);
     res
@@ -179,48 +215,44 @@ const getValidationQueue = async (req, res) => {
 
 const validateOrder = async (req, res) => {
   const { id: orderId } = req.params;
-  const { decision } = req.body;
+  const { decision, prescriptionId, notes } = req.body;
 
   if (!["approved", "rejected"].includes(decision)) {
     return res.status(400).json({ message: "Invalid decision." });
   }
+  if (decision === "rejected" && !prescriptionId) {
+    return res
+      .status(400)
+      .json({ message: "Prescription ID is required for rejection." });
+  }
 
-  const newStatus = decision === "approved" ? "pending_payment" : "cancelled";
   const connection = await db.getConnection();
 
   try {
     await connection.beginTransaction();
-    const [orders] = await connection.query(
-      "SELECT * FROM `order` WHERE order_id = ? AND status = 'pending_prescription' FOR UPDATE",
-      [orderId]
-    );
-    if (orders.length === 0) {
-      throw new Error("Order not found or not awaiting validation.");
-    }
 
-    if (decision === "rejected") {
-      const order = orders[0];
-      const [items] = await connection.query(
-        "SELECT product_id, quantity FROM order_item WHERE order_id = ?",
+    if (decision === "approved") {
+      await connection.query(
+        "UPDATE `order` SET status = 'pending_payment' WHERE order_id = ? AND status = 'pending_prescription'",
         [orderId]
       );
-      for (const item of items) {
-        await connection.query(
-          "UPDATE inventory SET quantity = quantity + ? WHERE product_id = ? AND branch_id = ?",
-          [item.quantity, item.product_id, order.branch_id]
-        );
-      }
+      await connection.query(
+        "UPDATE prescription SET status = 'approved', pharmacist_id = ?, notes = 'Approved', validated_at = CURRENT_TIMESTAMP WHERE order_id = ? AND status = 'uploaded'",
+        [req.user.id, orderId]
+      );
+    } else {
+      await connection.query(
+        "UPDATE prescription SET status = 'rejected', pharmacist_id = ?, notes = ?, validated_at = CURRENT_TIMESTAMP WHERE prescription_id = ?",
+        [req.user.id, notes, prescriptionId]
+      );
+      await connection.query(
+        "UPDATE `order` SET status = 'cancelled' WHERE order_id = ?",
+        [orderId]
+      );
     }
 
-    await connection.query("UPDATE `order` SET status = ? WHERE order_id = ?", [
-      newStatus,
-      orderId,
-    ]);
-
     await connection.commit();
-    res
-      .status(200)
-      .json({ message: `Order has been ${decision} and stock updated.` });
+    res.status(200).json({ message: `Prescription has been ${decision}.` });
   } catch (error) {
     await connection.rollback();
     console.error("Error validating order:", error);
@@ -239,7 +271,7 @@ const getPrescriptionsForOrder = async (req, res) => {
       return res.status(403).json({ message: "Forbidden." });
     }
     const [prescriptions] = await db.query(
-      "SELECT prescription_id, image_url, uploaded_at FROM prescription WHERE order_id = ?",
+      "SELECT prescription_id, image_url, uploaded_at FROM prescription WHERE order_id = ? AND status = 'uploaded'",
       [orderId]
     );
     res.status(200).json(prescriptions);

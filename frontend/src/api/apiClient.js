@@ -178,13 +178,15 @@ const apiClient = {
    * (Pharmacist) Validates an entire order.
    * @param {string|number} orderId - The ID of the order to validate.
    * @param {string} decision - The new status ('approved' or 'rejected').
+   * @param {number} prescriptionId - The ID of the prescription being rejected (null if approved).
+   * @param {string} notes - Rejection notes from the pharmacist.
    * @returns {Promise<object>} The server's confirmation response.
    */
-  validateOrder: async (orderId, decision) => {
+  validateOrder: async (orderId, decision, prescriptionId, notes) => {
     try {
       return await fetchWithAuth(`${API_BASE_URL}/orders/${orderId}/validate`, {
         method: "PUT",
-        body: JSON.stringify({ decision }),
+        body: JSON.stringify({ decision, prescriptionId, notes }),
       });
     } catch (error) {
       console.error("Validate Order API error:", error);
