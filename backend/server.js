@@ -21,6 +21,7 @@ const inventoryRoutes = require("./routes/inventoryRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const deliveryRoutes = require("./routes/deliveryRoutes");
 const prescriptionRoutes = require("./routes/prescriptionRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
@@ -31,6 +32,7 @@ app.use("/api/inventory", inventoryRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/delivery", deliveryRoutes);
 app.use("/api/prescriptions", prescriptionRoutes);
+app.use("/api/payment", paymentRoutes);
 
 app.get("/api", (req, res) => {
   res.json({ message: "Welcome to the Long Chau PMS Backend API!" });

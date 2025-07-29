@@ -58,7 +58,7 @@ const PaymentVerificationQueue = () => {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div className="lg:col-span-1 bg-white p-4 rounded-lg shadow-md">
         <h3 className="font-semibold text-lg mb-4 border-b pb-2">
-          Awaiting Verification ({queue.length})
+          Awaiting verification ({queue.length})
         </h3>
         <ul className="space-y-2 max-h-[60vh] overflow-y-auto">
           {queue.map((order) => (

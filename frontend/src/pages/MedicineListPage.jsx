@@ -9,7 +9,6 @@ const MedicineCard = ({ medicine }) => {
   const { user } = useAuth(); // <-- Get user from auth context
   const [quantity, setQuantity] = useState(1);
 
-  // --- NEW: Check if the user can add to cart ---
   const canAddToCart = user && user.role === "customer";
 
   const handleAddToCart = () => {

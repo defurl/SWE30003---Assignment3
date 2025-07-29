@@ -14,14 +14,7 @@ const Header = () => {
             <img src="/src/assets/longchau-logo.png" alt="Long Chau Logo" className="h-10"/>
           </Link>
           
-          <div className="flex-1 max-w-xl mx-4">
-            <input 
-              type="text" 
-              placeholder="Tìm sản phẩm, bệnh, thương hiệu..." 
-              className="w-full px-4 py-2 text-gray-700 bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
+          
           <div className="flex items-center gap-6">
             {/* --- ROLE-BASED CONDITIONAL RENDERING --- */}
 

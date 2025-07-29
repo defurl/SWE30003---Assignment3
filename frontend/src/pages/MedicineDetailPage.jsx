@@ -26,6 +26,8 @@ const MedicineDetailPage = () => {
       return;
     }
 
+    if(user.role !== "customer") return;
+
     addToCart(medicine);
   };
 
@@ -61,6 +63,29 @@ const MedicineDetailPage = () => {
   return (
     <div className="container mx-auto px-6 py-8">
       <div className="bg-white rounded-lg shadow-xl p-8">
+          <div className="">
+            <Link
+              to="/medicines"
+              className="top-4 left-4 py-2 flex text-gray-500 hover:text-gray-800 transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg> Back to list
+            </Link>
+            
+          </div>
+          
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
             <img 
@@ -78,21 +103,33 @@ const MedicineDetailPage = () => {
             <p className="text-blue-600 font-bold text-3xl mt-6">{parseInt(medicine.price).toLocaleString('vi-VN')} VND</p>
             <div className="mt-8">
               {
-                isAuthenticated ? (
+                (isAuthenticated && user.role === "customer") ? (
                   <button onClick={addProductToCart} className="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">
                     Add to Cart
                   </button>
-                ) : (
-                  <>
+                ) : (!user ? (<>
                     <div className="p-4 mb-4 text-md text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-blue-400" role="alert">
                       <span className="font-medium">Sign-in required</span> 
                       <br></br>
                       Please sign in to add this medicine to your cart.
                     </div>
+                    
                     <button onClick={() => navigate('/login')} className="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">
                       Sign in
                     </button>
-                  </>
+                  </>) : (
+                    <>
+                      <div className="p-4 mb-4 text-md text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
+                        <span className="font-medium">Cannot purchased</span>
+                        <br></br>
+                        You must be logged in as a customer to add this medicine to your cart.
+                      </div>
+
+                      <button onClick={() => navigate('/medicines')} className="w-full bg-red-400 text-white font-bold py-3 px-6 rounded-lg hover:bg-red-700 transition-colors">
+                        Back to medicine list
+                      </button>
+                    </>
+                  )
                   
                 )
               }

@@ -204,7 +204,7 @@ const apiClient = {
   initiatePayment: async (orderId) => {
     try {
       return await fetchWithAuth(
-        `${API_BASE_URL}/orders/${orderId}/initiate-payment`,
+        `${API_BASE_URL}/payment/${orderId}`,
         {
           method: "POST",
         }
@@ -221,7 +221,7 @@ const apiClient = {
    */
   getPaymentQueue: async () => {
     try {
-      return await fetchWithAuth(`${API_BASE_URL}/orders/payment-queue`);
+      return await fetchWithAuth(`${API_BASE_URL}/payment/queue`);
     } catch (error) {
       console.error("Get Payment Queue API error:", error);
       throw error;
@@ -237,9 +237,9 @@ const apiClient = {
   confirmPayment: async (orderId, paymentMethod) => {
     try {
       return await fetchWithAuth(
-        `${API_BASE_URL}/orders/${orderId}/confirm-payment`,
+        `${API_BASE_URL}/payment/${orderId}`,
         {
-          method: "POST",
+          method: "PUT",
           body: JSON.stringify({ paymentMethod }),
         }
       );

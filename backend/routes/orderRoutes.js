@@ -6,9 +6,6 @@ const path = require("path");
 const {
   placeInitialOrder,
   getOrderById,
-  initiatePayment,
-  getPaymentQueue,
-  confirmPayment,
 } = require("../controllers/orderController");
 const { protect } = require("../middleware/authMiddleware");
 
@@ -68,12 +65,12 @@ router.post("/", protect, authorize("customer"), placeInitialOrder);
 //   upload.single("prescriptionFile"),
 //   uploadPrescriptionForOrder
 // );
-router.post(
-  "/:id/initiate-payment",
-  protect,
-  authorize("customer"),
-  initiatePayment
-);
+// router.post(
+//   "/:id/initiate-payment",
+//   protect,
+//   authorize("customer"),
+//   initiatePayment
+// );
 
 // router.get(
 //   "/validation-queue",
@@ -89,13 +86,13 @@ router.post(
 //   getPrescriptionsForOrder
 // );
 
-router.get("/payment-queue", protect, authorize("cashier"), getPaymentQueue);
-router.post(
-  "/:id/confirm-payment",
-  protect,
-  authorize("cashier"),
-  confirmPayment
-);
+// router.get("/payment-queue", protect, authorize("cashier"), getPaymentQueue);
+// router.post(
+//   "/:id/confirm-payment",
+//   protect,
+//   authorize("cashier"),
+//   confirmPayment
+// );
 
 router.get(
   "/:id",
