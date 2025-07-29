@@ -86,6 +86,25 @@ const uploadPrescription = async (req, res) => {
           );
         }
 
+        // get all pharmacists ID for notification
+        const [pharmacists] = await connection.query(
+          "SELECT staff_id FROM staff WHERE role = 'pharmacist'"
+        );
+
+        // insert notification for each pharmacist
+        for (const pharmacist of pharmacists) {
+          console.log(pharmacist)
+          await connection.query(
+            "INSERT INTO notification (order_id, title, message, status, channel, staff_id) VALUES (?, ?, ?, 'sent', 'in_app', ?)",
+            [
+              orderId,
+              "New prescription uploaded",
+              "A new prescription has been uploaded for review.",
+              pharmacist.staff_id
+            ]
+          );
+        }
+
         await connection.commit();
         res
           .status(201)
@@ -171,6 +190,11 @@ const validatePrescription = async (req, res) => {
             "UPDATE prescription SET status = 'approved', pharmacist_id = ?, notes = 'Approved', validated_at = CURRENT_TIMESTAMP WHERE order_id = ? AND status = 'pending'",
             [req.user.id, orderId]
           );
+          // add notification
+          await connection.query(
+            "INSERT INTO notification (order_id, title, message, status, channel, customer_id) VALUES (?, ?, ?, 'sent', 'in_app', (SELECT customer_id FROM `order` WHERE order_id = ?))",
+            [orderId, `Prescription approved`, `Your prescription for order #${orderId} has been approved.`, orderId]
+          );
         } else {
           await connection.query(
             "UPDATE prescription SET status = 'rejected', pharmacist_id = ?, notes = ?, validated_at = CURRENT_TIMESTAMP WHERE prescription_id = ?",
@@ -179,6 +203,10 @@ const validatePrescription = async (req, res) => {
           await connection.query(
             "UPDATE `order` SET status = 'prescription_declined' WHERE order_id = ?",
             [orderId]
+          );
+          await connection.query(
+            "INSERT INTO notification (order_id, title, message, status, channel, customer_id) VALUES (?, ?, ?, 'sent', 'in_app', (SELECT customer_id FROM `order` WHERE order_id = ?))",
+            [orderId, `Prescription rejected`, `Your prescription for order #${orderId} has been rejected. Reason: ${notes}`, orderId]
           );
         }
     }

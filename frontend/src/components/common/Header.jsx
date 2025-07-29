@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { PillIcon, ShoppingCartIcon, UserIcon, LogOutIcon, LayoutDashboardIcon } from './Icons.jsx';
+import { PillIcon, BellIcon, ShoppingCartIcon, UserIcon, LogOutIcon, LayoutDashboardIcon } from './Icons.jsx';
 
 const Header = () => {
   const { user, logout } = useAuth();
@@ -19,22 +19,27 @@ const Header = () => {
             {/* --- ROLE-BASED CONDITIONAL RENDERING --- */}
 
             {/* Show "Medicines" link for customers */}
-           {user?.role === 'customer' && (
+            {user?.role === 'customer' && (
               <>
                 <Link to="/medicines" className="text-gray-700 hover:text-blue-600 transition-colors font-semibold">Home</Link>
               </>
             )}
 
+
             {/* ONLY show "Cart" link for customers */}
             {user?.role === 'customer' && (
               <Link to="/order" className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors">
                 <ShoppingCartIcon />
-                <span>Cart</span>
               </Link>
             )}
             
             {user ? (
               <div className="flex items-center gap-4">
+                {/* Notification Bell - Show for all logged-in users */}
+                <Link to="/notifications" className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors">
+                  <BellIcon />
+                </Link>
+                
                 <Link 
                   to={user.role === 'customer' ? '/profile' : '/dashboard'} 
                   className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors font-semibold"

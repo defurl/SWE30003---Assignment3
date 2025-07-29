@@ -413,6 +413,19 @@ const apiClient = {
       throw error;
     }
   },
+
+  /**
+   * Gets all notifications for the authenticated user.
+   * @returns {Promise<object>} Object containing notifications array and unreadCount.
+   */
+  getNotifications: async () => {
+    try {
+      return await fetchWithAuth(`${API_BASE_URL}/notifications`);
+    } catch (error) {
+      console.error("Get Notifications API error:", error);
+      throw error;
+    }
+  },
 };
 
 export default apiClient;

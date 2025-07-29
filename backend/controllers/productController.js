@@ -9,7 +9,6 @@ const db = require('../config/db'); // Import the database connection pool
  */
 const getAllProducts = async (req, res) => {
   try {
-    // CORRECTED QUERY: Removed the non-existent 'is_active' column check.
     const [products] = await db.query('SELECT * FROM product');
     
     // Send the list of products as a JSON response.

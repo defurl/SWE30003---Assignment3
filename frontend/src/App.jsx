@@ -14,6 +14,7 @@ import LoginPage from './pages/LoginPage.jsx';
 import ProfilePage from './pages/customer/ProfilePage.jsx';
 import DashboardPage from './pages/staff/DashboardPage.jsx';
 import PrescriptionUploadPage from './pages/PrescriptionUploadPage.jsx';
+import NotificationCenter from './pages/NotificationCenter.jsx';
 
 const AppLayout = () => (
   <div className="min-h-screen flex flex-col bg-gray-50 font-sans">
@@ -44,6 +45,11 @@ export default function App() {
               </Route>
               <Route element={<ProtectedRoute allowedRoles={['pharmacist', 'cashier', 'branchManager', 'warehousePersonnel']} />}>
                   <Route path="dashboard" element={<DashboardPage />} />
+              </Route>
+              
+              {/* Notification Center - Available to all authenticated users */}
+              <Route element={<ProtectedRoute allowedRoles={['customer', 'pharmacist', 'cashier', 'branchManager', 'warehousePersonnel']} />}>
+                  <Route path="notifications" element={<NotificationCenter />} />
               </Route>
             </Route>
             

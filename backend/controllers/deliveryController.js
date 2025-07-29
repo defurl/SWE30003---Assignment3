@@ -59,6 +59,25 @@ const updateDeliveryStatus = async (req, res) => {
         "UPDATE `order` SET status = 'completed' WHERE order_id = ?",
         [orderId]
       );
+
+      // get customer ID from order
+      const [order] = await db.query(
+        "SELECT customer_id FROM `order` WHERE order_id = ?",
+        [orderId]
+      );
+
+      // notify customer
+      await db.query(
+        "INSERT INTO notification (order_id, customer_id, title, message, channel, status) VALUES (?, ?, ?, ?, ?, ?)",
+        [
+          orderId,
+          order[0].customer_id,
+          "Delivery completed",
+          "Your order has been successfully delivered.",
+          "in_app",
+          "sent"
+        ]
+      );
     }
 
     if (result.affectedRows === 0) {

@@ -119,6 +119,7 @@ CREATE TABLE `notification` (
   `customer_id` int(11) DEFAULT NULL,
   `staff_id` int(11) DEFAULT NULL,
   `order_id` int(11) DEFAULT NULL,
+  `title` text NOT NULL,
   `message` text NOT NULL,
   `channel` varchar(50) NOT NULL COMMENT 'sms, email, in_app',
   `status` varchar(50) NOT NULL DEFAULT 'pending' COMMENT 'pending, sent, failed',
