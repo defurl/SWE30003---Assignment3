@@ -339,6 +339,23 @@ const apiClient = {
   },
 
   /**
+   * Checks the current stock level for a product at a specific branch.
+   * @param {number} branchId The ID of the branch.
+   * @param {number} productId The ID of the product.
+   * @returns {Promise<object>} An object containing the quantity.
+   */
+  checkStock: async (branchId, productId) => {
+    try {
+      return await fetchWithAuth(
+        `${API_BASE_URL}/inventory/check/${branchId}/${productId}`
+      );
+    } catch (error) {
+      console.error("Check Stock API error:", error);
+      throw error;
+    }
+  },
+
+  /**
    * (Warehouse) Updates the fulfillment status of an order.
    * @param {string|number} orderId The ID of the order to update.
    * @param {string} newStatus The new delivery status.

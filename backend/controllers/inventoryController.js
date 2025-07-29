@@ -1,6 +1,30 @@
 const db = require("../config/db");
 
 /**
+ * @desc    Check the stock quantity for a specific product at a branch
+ * @route   GET /api/inventory/check/:branchId/:productId
+ * @access  Public
+ */
+const checkStock = async (req, res) => {
+  const { branchId, productId } = req.params;
+  try {
+    const [rows] = await db.query(
+      "SELECT quantity FROM inventory WHERE branch_id = ? AND product_id = ?",
+      [branchId, productId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(200).json({ quantity: 0 });
+    }
+
+    res.status(200).json({ quantity: rows[0].quantity });
+  } catch (error) {
+    console.error("Error checking stock:", error);
+    res.status(500).json({ message: "Server error while checking stock." });
+  }
+};
+
+/**
  * @desc    Get all inventory items for the logged-in staff's branch
  * @route   GET /api/inventory
  * @access  Private (WarehousePersonnel)
@@ -102,17 +126,16 @@ const receiveStock = async (req, res) => {
   } catch (error) {
     await connection.rollback();
     console.error("Error receiving stock:", error);
-    res
-      .status(500)
-      .json({
-        message: error.message || "Server error while updating inventory.",
-      });
+    res.status(500).json({
+      message: error.message || "Server error while updating inventory.",
+    });
   } finally {
     connection.release();
   }
 };
 
 module.exports = {
+  checkStock,
   getBranchInventory,
   updateStockQuantity,
   receiveStock,
