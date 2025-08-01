@@ -16,15 +16,22 @@ const initiatePayment = async (req, res) => {
 
     // find all cashiers ID
     const [cashiers] = await db.query(
-        "SELECT staff_id FROM staff WHERE role = 'cashier'"
+      "SELECT staff_id FROM staff WHERE role = 'cashier'"
     );
 
     for (const cashier of cashiers) {
-        // send notification to each cashier
-        await db.query(
-            "INSERT INTO notification (order_id, title, message, status, channel, staff_id) VALUES (?, ?, ?, ?, ?)",
-            [orderId, "Payment created", `Order #${orderId} has initiated payment for their order.`, "sent", "in_app", cashier.staff_id]
-        );
+      // send notification to each cashier
+      await db.query(
+        "INSERT INTO notification (order_id, title, message, status, channel, staff_id) VALUES (?, ?, ?, ?, ?, ?)",
+        [
+          orderId,
+          "Payment created",
+          `Order #${orderId} has initiated payment for their order.`,
+          "sent",
+          "in_app",
+          cashier.staff_id,
+        ]
+      );
     }
 
     if (result.affectedRows === 0) {
@@ -104,30 +111,42 @@ const confirmPayment = async (req, res) => {
 
     // notify to the customer
     await connection.query(
-        "INSERT INTO notification (order_id, title, message, status, channel, customer_id) VALUES (?, ?, ?, ?, ?, ?)",
-        [orderId, "Payment confirmed", `Your payment for order #${orderId} has been confirmed.`, "sent", "in_app", order.customer_id]
+      "INSERT INTO notification (order_id, title, message, status, channel, customer_id) VALUES (?, ?, ?, ?, ?, ?)",
+      [
+        orderId,
+        "Payment confirmed",
+        `Your payment for order #${orderId} has been confirmed.`,
+        "sent",
+        "in_app",
+        order.customer_id,
+      ]
     );
 
     // get all warehouse personnel
     const [warehouseStaff] = await connection.query(
-        "SELECT staff_id FROM staff WHERE role = 'warehousePersonnel'"
+      "SELECT staff_id FROM staff WHERE role = 'warehousePersonnel'"
     );
 
     for (const staff of warehouseStaff) {
-        // send notification to each warehouse staff
-        await connection.query(
-            "INSERT INTO notification (order_id, title, message, status, channel, staff_id) VALUES (?, ?, ?, ?, ?, ?)",
-            [orderId, "New order ready for processing", `Order #${orderId} is ready for processing in the inventory.`, "sent", "in_app", staff.staff_id]
-        );
+      // send notification to each warehouse staff
+      await connection.query(
+        "INSERT INTO notification (order_id, title, message, status, channel, staff_id) VALUES (?, ?, ?, ?, ?, ?)",
+        [
+          orderId,
+          "New order ready for processing",
+          `Order #${orderId} is ready for processing in the inventory.`,
+          "sent",
+          "in_app",
+          staff.staff_id,
+        ]
+      );
     }
 
     await connection.commit();
-    res
-      .status(200)
-      .json({
-        message:
-          "Payment confirmed. Order is now being processed for fulfillment.",
-      });
+    res.status(200).json({
+      message:
+        "Payment confirmed. Order is now being processed for fulfillment.",
+    });
   } catch (error) {
     await connection.rollback();
     console.error("Error confirming payment:", error);
@@ -140,7 +159,7 @@ const confirmPayment = async (req, res) => {
 };
 
 module.exports = {
-    initiatePayment,
-    getPaymentQueue,
-    confirmPayment
-}; 
+  initiatePayment,
+  getPaymentQueue,
+  confirmPayment,
+};
