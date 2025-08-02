@@ -38,10 +38,10 @@ const loginUser = async (req, res) => {
     const user = users[0];
     const isMatch = await bcrypt.compare(password, user.password_hash);
 
-    // if (!isMatch) {
-    //   console.log("bcrypt mismatch")
-    //   return res.status(401).json({ message: "Invalid credentials." });
-    // }
+    if (!isMatch) {
+      console.log("bcrypt mismatch")
+      return res.status(401).json({ message: "Invalid credentials." });
+    }
 
     // --- BUG FIX IS HERE ---
     // The payload must include the branchId for staff members.

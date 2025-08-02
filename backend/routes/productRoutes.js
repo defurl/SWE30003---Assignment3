@@ -9,7 +9,23 @@ const router = express.Router();
 const {
   getAllProducts,
   getProductById,
+  addProduct,
+  updateProduct,
+  deleteProduct,
 } = require('../controllers/productController');
+
+// Custom middleware for role authorization
+const authorize = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ message: `Forbidden: This route is only for ${roles.join(' or ')}.` });
+    }
+    next();
+  };
+};
+
+// Import authentication middleware
+const { protect } = require('../middleware/authMiddleware');
 
 // --- Route Definitions ---
 
@@ -23,6 +39,19 @@ router.get('/', getAllProducts);
 // @access  Public
 router.get('/:id', getProductById);
 
-// We will add protected routes for POST, PUT, DELETE later.
+// @route   POST /api/products
+// @desc    Add a new product
+// @access  Private (Warehouse Manager only)
+router.post('/', protect, authorize("warehousePersonnel"), addProduct);
+
+// @route   PUT /api/products/:id
+// @desc    Update a product by its ID
+// @access  Private (Warehouse Manager only)
+router.put('/:id', protect, authorize("warehousePersonnel"), updateProduct);
+
+// @route   DELETE /api/products/:id
+// @desc    Delete a product by its ID
+// @access  Private (Warehouse Manager only)
+router.delete('/:id', protect, authorize("warehousePersonnel"), deleteProduct);
 
 module.exports = router;
