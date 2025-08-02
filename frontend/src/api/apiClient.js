@@ -102,6 +102,59 @@ const apiClient = {
     }
   },
 
+  // ===== PRODUCT MANAGEMENT ENDPOINTS (Warehouse Personnel) =====
+
+  /**
+   * (Warehouse Personnel) Creates a new product.
+   * @param {object} productData - The product data { name, title, requires_prescription, price }.
+   * @returns {Promise<object>} The server's response with the created product.
+   */
+  createProduct: async (productData) => {
+    try {
+      return await fetchWithAuth(`${API_BASE_URL}/products`, {
+        method: "POST",
+        body: JSON.stringify(productData),
+      });
+    } catch (error) {
+      console.error("Create Product API error:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * (Warehouse Personnel) Updates an existing product.
+   * @param {string|number} productId - The ID of the product to update.
+   * @param {object} productData - The product data to update { name, title, requires_prescription, price }.
+   * @returns {Promise<object>} The server's response with the updated product.
+   */
+  updateProduct: async (productId, productData) => {
+    try {
+      return await fetchWithAuth(`${API_BASE_URL}/products/${productId}`, {
+        method: "PUT",
+        body: JSON.stringify(productData),
+      });
+    } catch (error) {
+      console.error("Update Product API error:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * (Warehouse Personnel) Deletes a product.
+   * @param {string|number} productId - The ID of the product to delete.
+   * @returns {Promise<object>} The server's response confirming deletion.
+   */
+  deleteProduct: async (productId) => {
+    try {
+      return await fetchWithAuth(`${API_BASE_URL}/products/${productId}`, {
+        method: "DELETE",
+      });
+    } catch (error) {
+      console.error("Delete Product API error:", error);
+      throw error;
+    }
+  },
+
   /**
    * (Customer) Places an initial order with items from the cart.
    * @param {Array<object>} items - Array of { productId, quantity }.

@@ -47,10 +47,10 @@ const getProductById = async (req, res) => {
  */
 const addProduct = async (req, res) => {
   try {
-    const { name, title, requires_prescription, price } = req.body;
+    const { name, description, requires_prescription, price } = req.body;
 
     // Validate required fields
-    if (!name || !title || requires_prescription === undefined || !price) {
+    if (!name || !description || requires_prescription === undefined || !price) {
       return res.status(400).json({ 
         message: 'All fields are required: name, title, requires_prescription, price' 
       });
@@ -68,8 +68,8 @@ const addProduct = async (req, res) => {
 
     // Insert new product into database
     const [result] = await db.query(
-      'INSERT INTO product (name, title, requires_prescription, price) VALUES (?, ?, ?, ?)',
-      [name, title, requires_prescription, parseFloat(price)]
+      'INSERT INTO product (name, description, requires_prescription, price) VALUES (?, ?, ?, ?)',
+      [name, description, requires_prescription, parseFloat(price)]
     );
 
     res.status(201).json({
@@ -78,7 +78,7 @@ const addProduct = async (req, res) => {
       product: {
         product_id: result.insertId,
         name,
-        title,
+        description,
         requires_prescription,
         price: parseFloat(price)
       }
@@ -98,7 +98,7 @@ const updateProduct = async (req, res) => {
   try {
 
     const { id } = req.params;
-    const { name, title, requires_prescription, price } = req.body;
+    const { name, description, requires_prescription, price } = req.body;
 
     // Check if product exists
     const [existingProduct] = await db.query('SELECT * FROM product WHERE product_id = ?', [id]);
@@ -107,7 +107,7 @@ const updateProduct = async (req, res) => {
     }
 
     // Validate at least one field is provided
-    if (!name && !title && requires_prescription === undefined && !price) {
+    if (!name && !description && requires_prescription === undefined && !price) {
       return res.status(400).json({ 
         message: 'At least one field must be provided: name, title, requires_prescription, price' 
       });
@@ -121,9 +121,9 @@ const updateProduct = async (req, res) => {
       updateFields.push('name = ?');
       values.push(name);
     }
-    if (title) {
-      updateFields.push('title = ?');
-      values.push(title);
+    if (description) {
+      updateFields.push('description = ?');
+      values.push(description);
     }
     if (requires_prescription !== undefined) {
       if (requires_prescription !== 0 && requires_prescription !== 1) {

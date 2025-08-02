@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import FulfillmentQueue from "./FulfillmentQueue.jsx";
 import StockManagement from "./StockManagement.jsx";
+import ProductCatalog from "./ProductCatalog.jsx";
 
 const WarehouseDashboard = () => {
   const [activeTab, setActiveTab] = useState("fulfillment");
@@ -28,12 +29,19 @@ const WarehouseDashboard = () => {
           >
             Stock management
           </button>
+          <button
+            onClick={() => setActiveTab("catalog")}
+            className={tabClass("catalog")}
+          >
+            Product catalog
+          </button>
         </nav>
       </div>
 
       <div>
         {activeTab === "fulfillment" && <FulfillmentQueue />}
         {activeTab === "stock" && <StockManagement />}
+        {activeTab === "catalog" && <ProductCatalog />}
       </div>
     </div>
   );
